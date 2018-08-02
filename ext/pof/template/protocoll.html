@@ -1,0 +1,895 @@
+$def with (protocols,addfields,key,switches,pro_num,table_matchs,table_match,Metadata,Tables)
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>
+        POF PROTOCOL       
+    </title>
+    <link rel="stylesheet" href="static/css/bootstrap.css">
+
+	<link rel="stylesheet" type="text/css" href="static/themes/default/easyui.css">
+	<script type="text/javascript" src="static/js/jquery-1.7.2.min.js"></script>
+	<script type="text/javascript" src="static/js/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="static/js/uuid.js"></script>
+	<script type="text/javascript" src="static/js/kinetic-v3.10.4.js"></script>
+	<script type="text/javascript" src="static/js/kinetic_topology.js"></script>
+
+
+<!--**************************************************************-->
+
+<style>
+    body {
+        padding-top: 90px; /* 改变文本到导航的距离*/
+  }
+</style> 
+<div class="navbar navbar-fixed-top"><!--改变导航的颜色，一般取反色//-->
+        <div class="navbar-inner1" >
+            <div class="container">  
+                <a class="brand2" href="#"><img src="static/img/USTN.png" alt="加载中"align="left" width="70" height="70"/></a>
+					<a class="brand2">POF Management System</a>
+<br><br><a class="brand3">University of Science and Technology of China</a>
+                       
+                </ul>
+            </div>                
+        </div>
+    </div>    
+
+</head>
+
+<!--*******************define the layout and navigation bar ********************************-->
+<body id="protocol">
+<table width="100%" height="100%" border="0">
+<tr valign="top">
+<td style="height:500px;width:50px;text-align:top;" bgColor="#7EC0EE">
+
+<style type="text/css">
+ul,li{margin:0;padding:0; list-style:none;}
+.daohang{width:192px;float:left;}
+.daohang ul{width:192px;float:left;}
+.daohang li{width:192px;height:50px;float:left; }
+.daohang li a{width:192px; padding-height:50px;background:#1E90FF;float:left; line-height:50px; color:#fff; font-weight:bold; font-size:14px; text-decoration:none;text-align:center;}
+.daohang li a:hover{background:#27408B;}
+#Topology #nav li#m1 a,
+#slot #nav li#m2 a,
+#protocol #nav li#m3 a, 
+#table #nav li#m4 a{width:192px; padding-height:50px;background:#27408B;float:left; line-height:50px; color:#fff; font-weight:bold; font-size:14px; text-decoration:none;text-align:center;}
+</style>
+<!--div of daohang-->
+<div class="daohang">
+	<ul id="nav">
+<br><br>
+    	<li id="m1"><a href="/topo/"><font size="4">Network Topology</font></a></li>
+<br><br><br><br>
+        <li id="m2"><a href="/Spectrum/"><font size="4">Spectrum Utilization</font></a></li>
+<br><br><br><br>
+        <li id="m3"><a href="/protocol/"><font size="4">Protocol Messages</font></a></li>
+<br><br><br><br>
+        <li id="m4"><a href="/table/"><font size="4">Tables States</font></a></li>  
+    </ul>
+</div>
+</td>
+
+<!--***content****-->
+
+
+<td background='static/img/background1.png' style="height:800px;width:100%;" align="left">
+<!-- 菜单  -->
+<div region="north" border="false" style="height:auto;background:#B3DFDA;padding:5px">
+	<div style="width:auto;">
+		<a href="javascript:void(0)" id="mb1" class="easyui-menubutton" menu="#mm1" >menu</a>
+	</div>
+	<div id="mm1" style="width:150px;">
+		<div >reload</div>
+		<div iconCls="icon-save"">save</div>
+		
+	</div>
+</div>
+<!--**************************************************************-->
+<!--define the style of div-->
+<style>
+.add{padding-left:30px;background:#8FBC8F;height:40px;line-height:40px;width:1180px;-moz-border-radius:20px 20px 0px 0px;border-radius:20px 20px 0px 0px;}
+.addfield{padding-left:30px;background:#8DB6CD;width:1180px;line-height:100px;overflow:auto;-moz-border-radius:0px 0px 20px 20px;border-radius:0px 0px 20px 20px;}
+$if pro_num > 5:
+	.show_protocol{padding-left:30px;background:#8DB6CD;width:1180px;height:200px;line-height:100px;overflow:auto;-moz-border-radius:0px 0px 20px 20px;border-radius:0px 0px 20px 20px;}
+$else :
+	.show_protocol{padding-left:30px;background:#8DB6CD;width:1180px;height:auto;line-height:100px;overflow:auto;-moz-border-radius:0px 0px 20px 20px;border-radius:0px 0px 20px 20px;}
+.addtable{padding-left:30px;background:#8DB6CD;width:1180px;height:auto;line-height:0px;overflow:auto;-moz-border-radius:0px 0px 20px 20px;border-radius:0px 0px 20px 20px;}
+.choosetable{padding-left:30px;background:#8DB6CD;width:1180px;line-height:40px;overflow:auto;-moz-border-radius:0px 0px 20px 20px;border-radius:0px 0px 20px 20px;}
+.addtableentry{padding-left:30px;background:#8DB6CD;width:1180px;line-height:40px;overflow:auto;-moz-border-radius:0px 0px 20px 20px;border-radius:0px 0px 20px 20px;}
+</style>
+<!--***add field***-->
+<div class="add">
+	<form name="form1" action="" method="post">
+	   <font size="4" >Input the field name:</font>
+	   <input type='text' id='fieldname' name ='fieldname' required="required" style="height:25px;text-align:top;width:150px" >
+	   <font size="4">Input the field length:</font>
+	   <input type='number' id='fieldlength' name ='fieldlength' required="required" min="0" max=200 height=100px style="height:25px;text-align:top;width:70px">
+	   <input type="submit" id="ok" name="ok" value="Add">
+	</form>
+</div>
+$if addfields:
+	<div class="addfield">
+		<font size="4" style="line-height:50px;">The fields of new protocol:</font>
+		<!--show fields list-->
+			<table border="2" id="field">
+		$for addfield in addfields:
+			<td>$addfield[0],$addfield[1],$addfield[2]</td>
+		$if addfields:
+			<td><form name="form4" action="" method="post">
+			<input type="submit" id="fielddelete" name="fielddelete" value="delete"></form></td>
+			</table>
+			<form name="form2" action="" method="post" style="line-height:50px;">
+			<font size="4" style="line-height:50px;">Input the protocol name:</font>
+			<input type="text" id="protocolname" name ="protocolname" required="required" style="height:25px;text-align:top;width:150px" >
+			<input type="submit" id="saveprotocol" name="saveprotocol" value="save the protocol">
+			</form>
+</div>
+<br>
+<!--show protocol list -->
+$if protocols:
+	<div style="padding-left:30px;width:1180px;background:#8FBC8F;line-height:30px;-moz-border-radius:20px 20px 0px 0px;border-radius:20px 20px 0px 0px;">
+		<font size="5">
+		The list of protocols:
+		</font>
+	</div>
+	<div class ="show_protocol">
+	<table border="2" id="protocols">
+		<tr valign="top" bgColor="#8E8E8E">
+		<th>Protocol name</th>
+		<th colspan="100">Protocol Fields</th>
+		<th colspan="0">Operation</th>
+		</tr>
+	$if Metadata:
+		<tr	bgColor="#4EEE94" style="height:10px;text-align:top;">
+		<td>Metadata</td>
+		$for field in Metadata:
+			<td>$field[0],$field[1],$field[2]</td>
+		</tr>
+	$for protocol in protocols:
+		$if protocol==key:
+			<tr	bgColor="#4F9D9D" style="height:10px;text-align:top;">
+		$else:
+			<tr style="height:10px;text-align:top;">
+		<td>$protocol</td>
+		$for field in protocols[protocol]:
+			<td>$field[0],$field[1],$field[2]</td>
+		<td colspan="100" align="right" style="height:10px;width:120px;text-align:top;">
+		<form name="operationform" action="" method="post" style="margin:0;padding:0">
+		<select name="$protocol" id="operation" style="height:25px;text-align:top;width:70px">
+			<option valve="delete">delete</operation>
+			<option valve="add">add table</operation>
+			<input type="submit" id="saveoperation" name="saveoperation" value="OK">
+		</form>
+		</td>
+		</tr>
+	</table>
+	</div>
+<!--add table according to protocol-->
+<br>
+$if key:
+	<div style="padding-left:30px;width:1180px;background:#8FBC8F;line-height:30px;-moz-border-radius:20px 20px 0px 0px;border-radius:20px 20px 0px 0px;">
+	<font size="5">
+	You can add table_match at here:</font>
+	<font size="3">
+	Procotol Name:$key</font> 
+	<img src="static/img/connector.png" onclick="divhidden('addtable');"/>
+	</div>
+	<div class="addtable" id="addtable">
+	<form name="tableform" action="" method="post" style="margin:0;padding:0">
+		<table border="0" id="addtabletable">
+			<tr>
+			<td><font size="3" style="padding-left:30px;">Table Name:</font></td>
+			<td><input type='text' id='Table_Name' name ='Table_Name' required="required" style="height:25px;text-align:top;width:150px" ></td>
+			<td><font size="3" style="padding-left:30px;">Table Type:</font></td>
+	 		<td><select name="Table_Type" id="Table_Type" style="height:25px;text-align:top;width:150px">
+				           <option valve="OF_MM_TABLE">OF_MM_TABLE</operation>
+						   <option valve="OF_LMP_TABLE">OF_LMP_TABLE</operation>
+						   <option valve="OF_EM_TABLE">OF_EM_TABLE</operation>
+						   <option valve="OF_LINEAR_TABLE">OF_LINEAR_TABLE</operation></select></td>
+			<td><font size="3" style="padding-left:30px;">Choice Field:</font></td>
+			<td><select name="Table_field" id="Table_field" style="height:25px;text-align:top;width:150px" onchange="choicefield('Table_field');">
+						   <option valve="OF_MM_TABLE"> </operation>
+						$for pro in protocols[key]:
+							<option valve="$pro[0]">1:$pro[0]</operation>
+						$for pro in Metadata:
+							<option valve="$pro[0]">-1:$pro[0]</operation>
+						
+			</td></tr>
+		</table>
+	<div style="padding-left:250px;"><input type="submit" id="table" name="table" value="add table"></div>
+	</form>
+	</div>
+<!--add table entry according to table-->
+<br>
+$if table_matchs:
+	<div style="padding-left:30px;width:1180px;background:#8FBC8F;line-height:30px;-moz-border-radius:20px 20px 0px 0px;border-radius:20px 20px 0px 0px;">
+	<font size="5">
+	You can choice table_match at here:</font>
+	<font size="3">
+	Procotol Name:$key</font> 
+	<img src="static/img/connector.png" onclick="divhidden('choosetable');"/>
+	</div>
+	<div class="choosetable" id="choosetable">
+	<table border="2" width="1160px">
+	<tr>
+	$for name in table_matchs[0]:
+		<td>$name</td>
+	<td>operation</td>
+	</tr>
+	$for table in table_matchs:
+		$if table['protocol_name']==key:
+			$if table==table_match:
+				<tr bgColor="#4F9D9D">
+			$else:
+				<tr>
+			$for name in table:
+				<td>$table[name]</td>
+			<td colspan="100" align="right" style="height:10px;width:120px;text-align:top;">
+			<form name="tableoperation" action="" method="post" style="margin:0;padding:0">
+			<select name="$table['table_name']$table['match_id']" id="tableoperation" style="height:25px;text-align:top;width:70px">
+				<option valve="delete">delete</operation>
+				<option valve="add">add entry</operation>
+			<input type="submit" id="tablesubmit" name="tablesubmit" value="OK">
+			</form>
+			</td>
+			</tr>
+	</table>
+	</div>
+<br>
+<!--add table entry according to table-->
+$if table_match:
+	<div style="padding-left:30px;width:1180px;background:#8FBC8F;line-height:30px;-moz-border-radius:20px 20px 0px 0px;border-radius:20px 20px 0px 0px;">
+	<font size="5">
+	You can add table entry at here:</font>
+	<font size="3">
+	Procotol Name:$key && Table Name:$table_match['table_name']&&Match ID:$table_match['match_id']</font> 
+	<img src="static/img/connector.png" onclick="divhidden('addtableentry');"/>
+	</div>	
+	<div class="addtableentry" id="addtableentry">
+	<form name="addentryform" action="" method="post" style="margin:0;padding:0">
+		<font size="4">Choice Switch:</font>
+		<select name="switch" id="switch" style="height:25px;text-align:top;width:170px" required="required">
+		<option valve="switch"> </operation>
+		$for switch in switches:
+			<option valve="$switch">$switch</operation>
+		</select>
+		<font size="4">Entry Name:</font><input type='text' id='entry_name' name ='entry_name' style="height:25px;text-align:top;width:70px" required="required">
+		<font size="4">Table Priority:</font><input type='number' id='Table_priority' name ='Table_priority' min="0" height=100px style="height:25px;text-align:top;width:70px" required="required">
+		<font size="4">Table Size:</font><input type='number' id='Table_Size' name ='Table_Size' min="0" height=100px style="height:25px;text-align:top;width:70px" required="required">	
+		<font size="4">Add Instructions:</font><select name="intsruction" id="intsruction" style="height:25px;text-align:top;width:170px">
+						<option valve="GOTO_TABLE">GOTO_TABLE</operation>
+						<option valve="GOTO_DIRECT_TABLE">GOTO_DIRECT_TABLE</operation>
+						<option valve="METER">METER</operation>
+						<option valve="WRITE_METADATA">WRITE_METADATA</operation>
+						<option valve="WRITE_METADATA_FROM_FLOW">WRITE_METADATA_FROM_FLOW</operation>
+						<option valve="APPLY_ACTION">APPLY_ACTION</operation></select>
+						<img src='static/img/plus.png' style='height:20px;width:20px'  onclick='addinstruction();'/>
+	<div id="addtableentry2">
+	</div>
+	<div id="addtableentry3">
+	</div>
+	<div id='showtableentry'>
+	<input type="hidden" id="submitinstruction" name="submitinstruction">
+	</div>
+	<input type="submit" id="addtableentrysubmit" name="addtableentrysubmit" value="add table entry" onmousemove="saveentry();">
+	</form>
+	</div>
+<script>
+//add instruction
+function addinstruction(){
+if(document.getElementById("intsruction").value=="GOTO_TABLE ")
+	{
+	document.getElementById("addtableentry2").style.height='auto';
+	document.getElementById("addtableentry2").style.display='';
+	document.getElementById("addtableentry3").style.height='0';
+	document.getElementById("addtableentry3").style.display='none';
+	var s="<table><td style='font-weight:bold;'>GOTO_TABLE:</td><td>Next Table ID:<select id='Next_Table_ID' style='height:25px;text-align:top;width:170px'><option valve=' '> </operation>";
+	var tableswitch=document.getElementById("switch").value;
+	$for switching in switches:
+		if(tableswitch=='$switching')
+		{
+			$for entry in Tables[switching]:
+				s+="<option valve='entry'>$entry['table_id']:$entry['entry_name']</operation>";
+		}
+	s+="</select></td><td>Packet Offset(byte):<input type='number' id='next_id_offset' name ='next_id_offset' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addgotable();'/"+"></td></table>";
+	document.getElementById("addtableentry2").innerHTML=s;
+	}
+if(document.getElementById("intsruction").value=="GOTO_DIRECT_TABLE ")
+	{
+	document.getElementById("addtableentry2").style.height='auto';
+	document.getElementById("addtableentry2").style.display='';
+	document.getElementById("addtableentry3").style.height='0';
+	document.getElementById("addtableentry3").style.display='none';
+	var s="<table><td style='font-weight:bold;'>GOTO_DIRECT_TABLE:</td><td>Next Table ID:<select id='Next_Table_ID' style='height:25px;text-align:top;width:170px'><option valve='Next_Table_ID'>Next_Table_ID</operation>";
+	s+="</select></td><td>Entry Index:<select id='Entry_Index' style='height:25px;text-align:top;width:170px'><option valve='Entry_Index'>Entry_Index</operation></select><td>Packet Offset(byte):<input type='number' id='next_id_offset' name ='next_id_offset' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addgodirecttable();'/"+"></td></table>";
+	document.getElementById("addtableentry2").innerHTML=s;
+	}
+if(document.getElementById("intsruction").value=="METER ")
+	{
+	document.getElementById("addtableentry2").style.height='auto';
+	document.getElementById("addtableentry2").style.display='';
+	document.getElementById("addtableentry3").style.height='0';
+	document.getElementById("addtableentry3").style.display='none';
+	var s="<table><td style='font-weight:bold;'>METER</td><td>Meter ID(kbps)::<select id='Meter_ID' style='height:25px;text-align:top;width:170px'><option valve='Meter_ID'>Meter_ID</operation>";
+	s+="</select></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addmeter();'/"+"></td></table>";
+	document.getElementById("addtableentry2").innerHTML=s;
+	}
+if(document.getElementById("intsruction").value=="WRITE_METADATA ")
+	{
+	document.getElementById("addtableentry2").style.height='auto';
+	document.getElementById("addtableentry2").style.display='';
+	document.getElementById("addtableentry3").style.height='0';
+	document.getElementById("addtableentry3").style.display='none';
+	var s="<table><td style='font-weight:bold;'>WRITE_METADATA</td><td>Metadata:<select id='exited_metadata' style='height:25px;text-align:top;width:170px'><option valve='exited_metadata'> </operation>";
+	$for field in Metadata:
+		s+="<option valve='$field[0]'>$field[0];$field[1]</operation>"
+	s+="</select></td><td>Value(0x):<input type='text' id='Value'style='height:25px;text-align:top;width:70px' oninput='inserthex("+'"Value","","exited_metadata"'+");'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addwritemetadata();'/"+"></td></table>";
+	document.getElementById("addtableentry2").innerHTML=s;
+	}
+if(document.getElementById("intsruction").value=="WRITE_METADATA_FROM_FLOW ")
+	{
+	document.getElementById("addtableentry2").style.height='auto';
+	document.getElementById("addtableentry2").style.display='';
+	document.getElementById("addtableentry3").style.height='0';
+	document.getElementById("addtableentry3").style.display='none';
+	var s="<table><td style='font-weight:bold;'>WRITE_METADATA</td><td>Metadata:<select id='exited_metadata' style='height:25px;text-align:top;width:170px'><option valve='exited_metadata'> </operation>";
+	$for field in Metadata:
+		s+="<option valve='$field[0]'>$field[0];$field[1]</operation>"
+	s+="</select></td><td>Packet Offset(bit):<input type='number' id='Packet_Offset'min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addWRITEMETADATAFROMFLOW();'/"+"></td></table>";
+	document.getElementById("addtableentry2").innerHTML=s;
+	}
+if(document.getElementById("intsruction").value=="APPLY_ACTION")
+	{
+	document.getElementById("addtableentry2").style.height='auto';
+	document.getElementById("addtableentry2").style.display='';
+	var s='Choose the action:<select name="chooseaction" id="chooseaction" style="height:25px;text-align:top;width:170px"><option valve="OUTPUT">OUTPUT</operation><option valve="SET_FIELD">SET_FIELD</operation><option valve="SET_FIELD_FROM_METADATA">SET_FIELD_FROM_METADATA</operation><option valve="MODIFY_FIELD">MODIFY_FIELD</operation><option valve="ADD_FIELD">ADD_FIELD</operation><option valve="DELETE_FIELD">DELETE_FIELD</operation><option valve="CALCULATE_CHECKSUM">CALCULATE_CHECKSUM</operation><option  valve="GROUP">GROUP</operation><option  valve="DROP">DROP</operation><option  valve="PACKET_IN">PACKET_IN</operation><option  valve="COUNTER">COUNTER</operation></select><img src="static/img/plus.png" style="height:20px;width:20px"  onclick="addaction();"/'+'>';	
+	document.getElementById("addtableentry2").innerHTML=s;
+	}
+}
+//add goto table
+var gototable=[];
+var gototableid=0;
+var mmm=0;
+function addgotable(){
+var m={};
+m['table_id']=document.getElementById("Next_Table_ID").value;
+m['offset']=document.getElementById("next_id_offset").value;
+gototable.push(m);
+mmm=0;
+var mm="<table border='2' id='gototable"+gototableid+"'><td  style='width:200px'><span style='font-weight:bold;'>GOTO_TABLE:</span></td><td style='width:950px'><span style='font-weight:bold;'>ID:</span>"+m['table_id']+"<span style='font-weight:bold;'>;Packet Offset:</span>"+m['offset']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+gototableid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+document.getElementById("addtableentry2").style.height='0';
+document.getElementById("addtableentry2").style.display='none';
+gototableid+=1;
+}
+//add goto direct table
+var gotodirecttable=[];
+var gotodirecttableid=0;
+function addgodirecttable(){
+var m={};
+mmm=1;
+m['table_id']=document.getElementById("Next_Table_ID").value;
+m['entry_index']=document.getElementById("Entry_Index").value;
+m['offset']=document.getElementById("next_id_offset").value;
+gotodirecttable.push(m);
+var mm="<table border='2' id='gotodirecttable"+gotodirecttableid+"'><td style='width:200px'><span style='font-weight:bold;'>GOTO_DIRECT_TABLE:</span></td><td style='width:950px'><span style='font-weight:bold;'>ID:</span>"+m['table_id']+"<span style='font-weight:bold;'>;Entry_Index:</span>"+m['entry_index']+"<span style='font-weight:bold;'>;Packet Offset:</span>"+m['offset']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+gotodirecttableid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+document.getElementById("addtableentry2").style.height='0';
+document.getElementById("addtableentry2").style.display='none';
+gotodirecttableid+=1;
+}
+//add meter
+var addmeters=[];
+var addmeterid=0;
+function addmeter(){
+var m={};
+mmm=2;
+m['Meter_ID']=document.getElementById("Meter_ID").value;
+addmeters.push(m);
+var mm="<table border='2' id='addmeterid"+addmeterid+"'><td style='width:200px'><span style='font-weight:bold;'>METER:</span></td><td style='width:950px'><span style='font-weight:bold;'>Meter ID:</span>"+m['Meter_ID']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+addmeterid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+document.getElementById("addtableentry2").style.height='0';
+document.getElementById("addtableentry2").style.display='none';
+addmeterid+=1;
+}
+//add writemetadata
+var addwritemetadatas=[];
+var addwritemetadataid=0;
+function addwritemetadata(){
+mmm=3;
+var m={};
+m['metadata']=document.getElementById("exited_metadata").value;
+m['value']=document.getElementById("Value").value;
+addwritemetadatas.push(m);
+var mm="<table border='2' id='addwritemetadataid"+addwritemetadataid+"'><td style='width:200px'><span style='font-weight:bold;'>METER:</span></td><td style='width:950px'><span style='font-weight:bold;'>Metadata:</span>"+m['metadata']+"<span style='font-weight:bold;'>;Value(0x):</span>"+m['value']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+addwritemetadataid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+document.getElementById("addtableentry2").style.height='0';
+document.getElementById("addtableentry2").style.display='none';
+addwritemetadataid+=1;
+}
+//add WRITE_METADATA_FROM_FLOW
+var addWRITEMETADATAFROMFLOWs=[];
+var addWRITEMETADATAFROMFLOWid=0;
+function addWRITEMETADATAFROMFLOW(){
+mmm=4;
+var m={};
+m['metadata']=document.getElementById("exited_metadata").value;
+m['Packet_Offset']=document.getElementById("Packet_Offset").value;
+addWRITEMETADATAFROMFLOWs.push(m);
+var mm="<table border='2' id='addWRITEMETADATAFROMFLOWid"+addWRITEMETADATAFROMFLOWid+"'><td style='width:200px'><span style='font-weight:bold;'>WRITE_METADATA_FROM_FLOW:</span></td><td style='width:950px'><span style='font-weight:bold;'>Metadata:</span>"+m['metadata']+"<span style='font-weight:bold;'>;Packet_Offset(bit):</span>"+m['Packet_Offset']+"</td><td><img src='static/img/delete.jpg'style='height:20px;width:20px' onclick='deleter("+addWRITEMETADATAFROMFLOWid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+document.getElementById("addtableentry2").style.height='0';
+document.getElementById("addtableentry2").style.display='none';
+addWRITEMETADATAFROMFLOWid+=1;
+}
+
+
+//add action
+var actions={};
+function addaction(){
+if(document.getElementById("chooseaction").value=="OUTPUT"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	var s="<table><td style='font-weight:bold;'>OUTPUT:</td><td>Output Port ID:<select id='OUTPUT_PORT_ID' style='height:25px;text-align:top;width:170px'><option valve='OUTPUT_PORT_ID'>PORT_ID</operation>";
+	s+="</select></td><td>Metadata Offset(bit):<input type='number' id='output_metadata_offset' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td>Metadata Length(bit):<input type='number' id='output_metadata_length' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td>Packet Offset(byte):<input type='number' id='output_id_offset' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addoutput();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="SET_FIELD"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	$if key:
+		var s="<table><td style='font-weight:bold;'>SET_FIELD:</td><td>Field Name:<select id='Field_Name' style='height:25px;text-align:top;width:170px'><option valve='field'> </operation>"
+		$for pro in protocols[key]:
+			s+="<option valve='$pro'>$pro[0];length:$pro[1]</operation>";
+		s+="</select></td><td>Value(0x):<input oninput='inserthex("+'"field_value","field_mask","Field_Name"'+");'  type='text' id='field_value' style='height:25px;text-align:top;width:70px'></td><td>Mask(0x):<input type='text' id='field_mask' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addsetfield();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="SET_FIELD_FROM_METADATA"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	$if key:
+		var s="<table><td style='font-weight:bold;'>SET_FIELD_FROM_METADATA:</td><td>Field Name:<select id='Field_Name' style='height:25px;text-align:top;width:170px'><option valve='field'> </operation>"
+		$for pro in protocols[key]:
+			s+="<option valve='$pro'>$pro[0];length:$pro[1]</operation>";
+		s+="</select></td><td>Metadata Offset(bit):<input type='number' id='metadata_offset' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addsetfieldfrommetadata();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="MODIFY_FIELD"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	$if key:
+		var s="<table><td style='font-weight:bold;'>MODIFY_FIELD:</td><td>Field Name:<select id='Field_Name' style='height:25px;text-align:top;width:170px'>"
+		$for pro in protocols[key]:
+			s+="<option valve='$pro'>$pro[0]</operation>";
+		s+="</select></td><td>Increment:<input type='number' id='Increment' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addmodifyfield();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="ADD_FIELD"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	$if key:
+		var s="<table><td style='font-weight:bold;'>ADD_FIELD:</td><td>New Field Name:<input type='text' id='New_Field_Name' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td>Existed Field<select id='Existed_Field' style='height:25px;text-align:top;width:200px'>"
+		$for pro in protocols[key]:
+			s+="<option valve='$pro'>Name:$pro[0];Length:$pro[1];Offset:$pro[2]</operation>";
+		s+="</select></td><td>Field Value(0x):<input oninput='inserthex("+'"field_value"'+");'type='text' id='field_value' style='height:25px;text-align:top;width:100px'></td><td><img src='static/img/plus.png'style='height:20px;width:20px' onclick='addaddfield();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="DELETE_FIELD"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+		var s="<table><td style='font-weight:bold;'>Delete Field:</td><td>Offset(bit):<input type='number' id='offset' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td>Length(bit)<input type='number' id='length' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='adddeletefield();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="CALCULATE_CHECKSUM"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	var s="<table><td style='font-weight:bold;'>Calculate_Checksum:</td><td>ChecksumPosition(bit):<input type='number' id='Checksum_Position' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td>Checksum Length(bit)<input type='number' id='Checksum_Length' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td>Calc position(bit)<input type='number' id='Calc_position' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td>Calc Length(bit)<input type='number' id='Calc_Length' min='0' height=100px style='height:25px;text-align:top;width:70px'></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addCalculateChecksum();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="GROUP"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	var s="<table><td style='font-weight:bold;'>GROUP:</td><td>GROUP ID:<select id='GROUP_ID' style='height:25px;text-align:top;width:170px'><option valve='GROUP_ID'>GROUP_ID</operation>";
+	s+="</select></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='addgroup();'/"+"></td></table>";	
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="DROP"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	var s=s="<table><td style='font-weight:bold;'>Drop:</td><td>Reason:<select id='Reason' style='height:25px;text-align:top;width:170px'><option valve='OFPDT_TIMEOUT'>OFPDT_TIMEOUT</operation><option valve='OFPDT_HIT_MISS'>OFPDT_HIT_MISS</operation><option valve='OFPDT_UNKNOW'>OFPDT_UNKNOW</operation>";
+	s+="</select></td><td><img src='static/img/plus.png' style='height:20px;width:20px' onclick='adddrop();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="PACKET_IN"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	var s="<table><td style='font-weight:bold;'>PACKET_IN:</td><td>Reason:<select id='Reason' style='height:25px;text-align:top;width:170px'><option valve='OFPR_NO_MATCH'>OFPR_NO_MATCH</operation><option valve='OFPR_ACTION'>OFPR_ACTION</operation><option valve='OFPR_INVALID'>OFPR_INVALID</operation>";
+	s+="</select></td><td><img src='static/img/plus.png'style='height:20px;width:20px' onclick='addpacketin();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+if(document.getElementById("chooseaction").value=="COUNTER"){
+	document.getElementById("addtableentry3").style.height='auto';
+	document.getElementById("addtableentry3").style.display='';
+	var s="<table><td style='font-weight:bold;'>COUNTER:</td><td>Counter ID:<select id='Counter_ID' style='height:25px;text-align:top;width:170px'><option valve='Counter_ID'>Counter_ID</operation>";
+	s+="</select></td><td><img src='static/img/plus.png' style='height:20px;width:20px'onclick='addcounter();'/"+"></td></table>";
+	document.getElementById("addtableentry3").innerHTML=s;
+	}
+}
+//show action
+//addoutput
+var outputs=[];
+var outputid=0;
+function addoutput(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=11;
+var m={}
+m['output']=document.getElementById("OUTPUT_PORT_ID").value;
+m['metadata_offset']=document.getElementById("output_metadata_offset").value;
+m['metadata_length']=document.getElementById("output_metadata_length").value;
+m['packet_offset']=document.getElementById("output_id_offset").value;
+outputs.push(m);
+var mm="<table border='2' id='output"+outputid+"'><td style='width:200px'><span style='font-weight:bold;'>Out Put:</span></td><td style='width:950px'><span style='font-weight:bold;'>Output Port:</span>"+m['output']+"<span style='font-weight:bold;'>;metadata_offset:</span>"+m['metadata_offset']+"<span style='font-weight:bold;'>;metadata_length:</span>"+m['metadata_length']+"<span style='font-weight:bold;'>;packet_offset:</span>"+m['packet_offset']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+outputid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+outputid+=1;
+}
+//addsetfield
+var setfields=[];
+var setfieldid=0;
+function addsetfield(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=12;
+var m={}
+m['name']=document.getElementById("Field_Name").value;
+m['value']=document.getElementById("field_value").value;
+m['mask']=document.getElementById("field_mask").value;
+setfields.push(m);
+var mm="<table border='2' id='setfield"+setfieldid+"'><td style='width:200px'><span style='font-weight:bold;'>Set Field:</span></td><td style='width:950px'><span style='font-weight:bold;'>NAME:</span>"+m['name']+"<span style='font-weight:bold;'>;VALUE:</span>"+m['value']+"<span style='font-weight:bold;'>;MASK:</span>"+m['mask']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+setfieldid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+setfieldid+=1;
+}
+//add setfield from metadata
+var setfieldfrommetadatas=[];
+var setfieldfrommetadataid=0;
+function addsetfieldfrommetadata(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=13;
+var m={}
+m['name']=document.getElementById("Field_Name").value;
+m['metadata_offset']=document.getElementById("metadata_offset").value;
+setfieldfrommetadatas.push(m);
+var mm="<table border='2' id='setfieldfrommetadata"+setfieldfrommetadataid+"'><td style='width:200px'><span style='font-weight:bold;'>Set Field:</span></td><td style='width:950px'><span style='font-weight:bold;'>NAME:</span>"+m['name']+"<span style='font-weight:bold;'>;Metadata_Offset:</span>"+m['metadata_offset']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+setfieldfrommetadataid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+setfieldfrommetadataid+=1;
+}
+//add modifyfield
+var modifyfields=[];
+var modifyfieldid=0;
+function addmodifyfield(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=14;
+var m={}
+m['name']=document.getElementById("Field_Name").value;
+m['Increment']=document.getElementById("Increment").value;
+modifyfields.push(m);
+var mm="<table border='2' id='modifyfield"+modifyfieldid+"'><td style='font-weight:bold;width:200px'>Modify Field:</td><td style='width:950px'><span style='font-weight:bold;'>Name:</span>"+m['name']+"<span style='font-weight:bold;'>;Increment:</span>"+m['Increment']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+modifyfieldid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+modifyfieldid+=1;
+}
+//add addfield
+var addaddfields=[];
+var addaddfieldid=0;
+function addaddfield(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=15;
+var m={}
+m['New_Field_Name']=document.getElementById("New_Field_Name").value;
+m['Existed_Field']=document.getElementById("Existed_Field").value;
+m['field_value']=document.getElementById("field_value").value;
+var mm="<table border='2' id='addaddfield"+addaddfieldid+"'><td style='font-weight:bold;width:200px'>Add Field:</td><td style='width:950px'><span style='font-weight:bold;'>New Field Name:</span>"+m['New_Field_Name']+"<span style='font-weight:bold;'>;Existed Field:</span>"+m['Existed_Field']+"<span style='font-weight:bold;'>;Field Value:</span>"+m['field_value']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+addaddfieldid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+m['Existed_Field']='{'+m['Existed_Field']+'}';
+addaddfields.push(m);
+addaddfieldid+=1;
+}
+//add deletefield
+var adddeletefields=[];
+var adddeletefieldid=0;
+function adddeletefield(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=16;
+var m={}
+m['offset']=document.getElementById("offset").value;
+m['length']=document.getElementById("length").value;
+adddeletefields.push(m);
+var mm="<table border='2' id='deletefield"+adddeletefieldid+"'><td style='font-weight:bold;width:200px'>Delete Field:</td><td style='width:950px'> <span style='font-weight:bold;'>Offset(bit):</span>"+m['offset']+"<span style='font-weight:bold;'>;Length(bit):</span>"+m['length']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+adddeletefieldid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+adddeletefieldid+=1;
+}
+//add CalculateChecksum
+var CalculateChecksums=[];
+var CalculateChecksumid=0;
+function addCalculateChecksum(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=17;
+var m={}
+m['Checksum_Position']=document.getElementById("Checksum_Position").value;
+m['Checksum_Length']=document.getElementById("Checksum_Length").value;
+m['Calc_Start_Position']=document.getElementById("Calc_position").value;
+m['Calc_Length']=document.getElementById("Calc_Length").value;
+CalculateChecksums.push(m);
+var mm="<table border='2' id='CalculateChecksumid"+CalculateChecksumid+"'><td style='font-weight:bold;width:200px'>Calculate Checksum:</td><td style='width:950px'><span  style='font-weight:bold;'>Checksum Position(bit):</span>"+m['Checksum_Position']+"<span style='font-weight:bold;'>;Checksum Length(bit):</span>"+m['Checksum_Length']+"<span style='font-weight:bold;'>;Calc Start Position(bit):</span>"+m['Calc_Start_Position']+"<span style='font-weight:bold;'>;Calc Length(bit):</span>"+m['Calc_Length']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+CalculateChecksumid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+CalculateChecksumid+=1;
+}
+//add GROUP_ID
+var addgroups=[];
+var addgroupid=0;
+function addgroup(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=18;
+var m={}
+m['Group_ID']=document.getElementById("GROUP_ID").value;
+addgroups.push(m);
+var mm="<table border='2' id='addgroupid"+addgroupid+"'><td style='font-weight:bold;width:200px'>Group:</td><td style='width:950px'><span style='font-weight:bold;'>Group ID:</span>"+m['Group_ID']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+addgroupid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+addgroupid+=1;
+}
+//add DROP
+var adddrops=[];
+var adddropid=0;
+function adddrop(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=19;
+var m={}
+m['Reason']=document.getElementById("Reason").value;
+adddrops.push(m);
+var mm="<table border='2' id='adddropid"+adddropid+"'><td style='font-weight:bold;width:200px'>Drop:</td><td style='width:950px'> <span style='font-weight:bold;'>Reason:</span>"+m['Reason']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+adddropid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+adddropid+=1;
+}
+//add packetin
+var addpacketins=[];
+var addpacketinid=0;
+function addpacketin(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=20;
+var m={}
+m['Reason']=document.getElementById("Reason").value;
+addpacketins.push(m);
+var mm="<table border='2' id='addpacketinid"+addpacketinid+"'><td style='font-weight:bold;width:200px'>Packet_IN:</td><td style='width:950px'> <span style='font-weight:bold;'>Reason:</span>"+m['Reason']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+addpacketinid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+addpacketinid+=1;
+}
+//add counter
+var addcounters=[];
+var addcounterid=0;
+function addcounter(){
+document.getElementById("addtableentry3").style.height='0';
+document.getElementById("addtableentry3").style.display='none';
+mmm=21;
+var m={}
+m['Counter_ID']=document.getElementById("Counter_ID").value;
+addcounters.push(m);
+var mm="<table border='2' id='addcounterid"+addcounterid+"'><td style='font-weight:bold;width:200px'>Counter:</td><td style='width:950px'><span style='font-weight:bold;'>Counter_ID:</span>"+m['Counter_ID']+"</td><td><img src='static/img/delete.jpg' style='height:20px;width:20px' onclick='deleter("+addcounterid+","+mmm+");'/"+"></td></table>";
+document.getElementById("showtableentry").innerHTML+=mm;
+addcounterid+=1;
+}
+//delete 
+function deleter(m,mm){
+if(mm==0)
+{gototable[m]=[];
+var x=""+m;
+x="gototable"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==1) 
+{gotodirecttable[m]=[];
+var x=""+m;
+x="gotodirecttable"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==2) 
+{addmeters[m]=[];
+var x=""+m;
+x="addmeterid"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==3) 
+{addwritemetadatas[m]=[];
+var x=""+m;
+x="addwritemetadataid"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==4) 
+{addWRITEMETADATAFROMFLOWs[m]=[];
+var x=""+m;
+x="addWRITEMETADATAFROMFLOWid"+x;
+document.getElementById(x).style.display='none';
+}
+//actions
+if(mm==11) 
+{
+outputs[m]=[];
+var x=""+m;
+x="output"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==12) 
+{setfields[m]=[];
+var x=""+m;
+x="setfield"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==13) 
+{
+setfieldfrommetadatas[m]=[];
+var x=""+m;
+x="setfieldfrommetadata"+x;
+document.getElementById(x).style.display='none';
+//document.getElementById("addtableentry2").innerHTML+=setfieldfrommetadatas;
+}
+if(mm==14) 
+{
+modifyfields[m]=[];
+var x=""+m;
+x="modifyfield"+x;
+document.getElementById(x).style.display='none';
+//document.getElementById("addtableentry2").innerHTML+=modifyfields;
+}
+if(mm==15) 
+{
+addaddfields[m]=[];
+var x=""+m;
+x="addaddfield"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==16) 
+{
+CalculateChecksums[m]=[];
+var x=""+m;
+x="deletefield"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==17) 
+{
+adddeletefields[m]=[];
+var x=""+m;
+x="CalculateChecksumid"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==18) 
+{
+addgroups[m]=[];
+var x=""+m;
+x="addgroupid"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==19) 
+{
+adddrops[m]=[];
+var x=""+m;
+x="adddropid"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==20) 
+{
+addpacketins[m]=[];
+var x=""+m;
+x="addpacketinid"+x;
+document.getElementById(x).style.display='none';
+}
+if(mm==21) 
+{
+addcounters[m]=[];
+var x=""+m;
+x="addcounterid"+x;
+document.getElementById(x).style.display='none';
+}
+}
+
+
+//to make sure the number you input is hex and the length is in range
+function inserthex(a,b,c){
+var field;
+field = document.getElementById(c).value;
+var FF='';
+num=field.replace(/[^0-9]/ig,"");
+num = (num-1)/4+1;
+document.getElementById(a).value = document.getElementById(a).value.replace(/[^0-9a-fA-F]/g,"");
+document.getElementById(a).value = document.getElementById(a).value.toUpperCase();
+for(i=1;i<=num;i++)
+	FF+='f';
+if(b) document.getElementById(b).value = FF;
+var content='';
+content=document.getElementById(a).value;
+if(content.length>num)
+	{num=(num-1)*4+1;
+	alert('The length of this field is'+num);
+	}
+}
+//choicefield
+$if key:
+	function choicefield(idname){
+	var context = document.getElementById(idname).value;
+	var num=context.replace(/[^-0-9]/ig,'');
+	var name=context.replace(/[^ a-zA-Z]/ig,'');
+	var mm='';
+	if (num==1){
+	$for pro in protocols[key]:
+		if(name=='$pro[0] '){mm="<tr><td><font size='3' style='padding-left:30px;'>$pro[0]:(0x)$pro[1]:</font></td><td><input oninput='insert("+'"$pro[0]","$pro[1]"'+");'  type='text' id='$pro[0]_value' name ='$pro[0]_value' style='height:25px;text-align:top;width:150px' ></td><td><font size='3' style='padding-left:30px;'>Mask(0x):</font></td><td><input type='text' id='$pro[0]_mask' name ='$pro[0]_mask' style='height:25px;text-align:top;width:150px' ></td></tr>";}
+	}
+	if (num=='-1'){
+	$for pro in Metadata:
+		if(name=='$pro[0] '){mm="<tr><td><font size='3' style='padding-left:30px;'>$pro[0]:(0x)$pro[1]:</font></td><td><input oninput='insert("+'"$pro[0]","$pro[1]"'+");'  type='text' id='$pro[0]_value' name ='$pro[0]_value' style='height:25px;text-align:top;width:150px' ></td><td><font size='3' style='padding-left:30px;'>Mask(0x):</font></td><td><input type='text' id='$pro[0]_mask' name ='$pro[0]_mask' style='height:25px;text-align:top;width:150px' ></td></tr>";}
+	}
+	document.getElementById("addtabletable").innerHTML+=mm;
+	}
+//to make sure the number user input is hex,and the length is in range,and fill the mask
+function insert(pro,num){
+	var a='';
+	var FF='';
+	a=pro+'_mask';
+	num = (num-1)/4+1;
+	var b='';
+	b=pro+'_value';
+    document.getElementById(b).value = document.getElementById(b).value.replace(/[^0-9a-fA-F]/g,"");
+    document.getElementById(b).value = document.getElementById(b).value.toUpperCase();
+	for(i=1;i<num;i++)
+		FF+='f';
+	document.getElementById(a).value = FF;
+	var content='';
+	content=document.getElementById(b).value;
+	if(content.length>num)
+		{num=(num-1)*4+1;
+		alert('The length of this field is'+num);
+		}
+}
+function divhidden(a){
+	if(document.getElementById(a).style.height=='auto')
+		document.getElementById(a).style.height='0';
+	else
+		document.getElementById(a).style.height='auto';
+	}
+function saveentry(){
+actions['output']=outputs;
+actions['set_field']=setfields;
+actions['set_field_from_metadata']=setfieldfrommetadatas;
+actions['modify_field']=modifyfields;
+actions['add_field']=addaddfields;
+actions['delete_field']=adddeletefields;
+actions['calculate_checksum']=CalculateChecksums;
+actions['group']=addgroups;
+actions['drop']=adddrops;
+actions['packet_in']=addpacketins;
+actions['counter']=addcounters;
+var instruction={};
+instruction['goto_talbe']=gototable;
+instruction['goto_direct_talbe']=gotodirecttable;
+instruction['meter']=addmeters;
+instruction['write_metadata']=addwritemetadatas;
+instruction['write_metadata_from_flow']=addWRITEMETADATAFROMFLOWs;
+instruction['apply_action']=actions
+var mm=JSON.stringify(instruction);
+document.getElementById("submitinstruction").value=mm;
+}
+</script>
+<!--**************************-->
+</td>
+</tr>
+<tr>
+<td colspan="2" style="background-color:#7EC0EE;text-align:center;">
+Copyright:Large-Scale Network and Computer Laboratory of the USTC</td>
+</tr>
+</table>
+</body>
+</html>
