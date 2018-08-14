@@ -1,16 +1,27 @@
 
 #coding:utf-8
 import sys
-sys.path.append('/home/jiazy/jiazy_pox_for_TSN/loop_IOA_NC_USTC_SUC/')
+sys.path.append('/home/naner/jiazy/ctrl_for_POF/')
 
 import pox.openflow.libopenflow_01 as of
-import global_env as g
-import table_config as tab_cfg
 import re
 import socket
 import struct
 
 
+#default sending timeslot
+send_tslot = 0
+
+# TD-MIB format: { (sending_deviceID, sending_portID):[receiving_deviceID, receiving_portID, delay]}
+TD_MIB ={}
+
+#format:{deviceID:[streamID,portID,tslot,queueID]}
+#queueID is unique in each device
+init_flag = 1
+config = {}
+
+# TSN config file
+conf_file = "/home/naner/jiazy/ctrl_for_POF/tsn_delay/tsn_conf_file1"
 
 def read_tsn_config(file):
 	config_tem = {}
