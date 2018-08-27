@@ -910,7 +910,7 @@ class Connection (EventMixin):
 
       ofp_type = ord(self.buf[offset+1])#ord:convert charater to ASCII
       
-      #print "recv msg type,",ofp_type
+      print "recv msg type,",ofp_type
 
       if ord(self.buf[offset]) != of.OFP_VERSION:
         if ofp_type == of.OFPT_HELLO:

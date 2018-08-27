@@ -4,8 +4,9 @@ import sys
 sys.path.append('/home/naner/jiazy/ctrl_for_POF/')
 
 import pox.openflow.libopenflow_01 as of
+from pox.core import core
 
-import sync_trans.table_config as cfg
+import flow_table_config.table_config as cfg
 import tsn_config as tsn
 
 log = core.getLogger()
@@ -20,14 +21,10 @@ def test_tsn_config(event):
 
 
 def test_tsn_switch (event):
-	msg = cfg.add_classfier_table('classfier_edge')
+	msg = cfg.add_classfier_table('classifier')
 	event.connection.send(msg)
 
-
-	msg = cfg.add_classfier_entry('classfier_edge', 0)
-	event.connection.send(msg)
-
-	msg = cfg.add_classfier_entry('classfier_edge', 1)
+	msg = cfg.add_classfier_entry('classfier', 0)
 	event.connection.send(msg)
 
 
@@ -39,10 +36,15 @@ def _handle_ConnectionUp (event):
 	else:
 		pass
 
-	test_tsn_config(event)	
+	test_tsn_config(event)
+	test_tsn_switch(event)
 
+def _handle_PacketIn (event):
+	print "handle PacketIn event!"
+	
 def launch ():
 	core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)
+	core.openflow.addListenerByName("PacketIn", _handle_PacketIn)
 
 	log.info("test_TSN_CFG running.")
 

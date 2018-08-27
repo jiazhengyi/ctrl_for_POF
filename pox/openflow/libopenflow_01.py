@@ -3933,7 +3933,7 @@ class ofp_instruction_setpacketoffset (ofp_instruction):  #add by jiazy
 ##POF  20.2.13 SET_PACKET_OFFSET
 @openflow_instruction("to_CP", 13)
 class ofp_instruction_to_CP (ofp_instruction):  #add by jiazy
-  _MIN_LENGTH = ofp_instruction._MIN_LENGTH + 8 + ofp_match20._MIN_LENGTH
+  _MIN_LENGTH = ofp_instruction._MIN_LENGTH + 12 + ofp_match20._MIN_LENGTH
   def __init__(self,**kw):
     ofp_instruction.__init__(self)
     self.reasonType = 0    #0: immediate value; 1: from field
@@ -3953,8 +3953,10 @@ class ofp_instruction_to_CP (ofp_instruction):  #add by jiazy
   def pack(self):
     packed=b""
     packed += ofp_instruction.pack(self)
-    packed += struct.pack("!BBHHH" ,self.reasonType, self.end_flag, self.max_len, self.meta_pos, self.meta_len)
-    #packed += _PAD * 7 
+    packed += struct.pack("!BBB" ,self.reasonType, self.end_flag, self.apply_action_flag)
+    packed +=  _PAD
+    packed += struct.pack("!HHH" ,self.max_len, self.meta_pos, self.meta_len)
+    packed += _PAD * 2 
 
     if self.reasonType == 0:
         packed += struct.pack("!L" ,self.reasonValue)
@@ -7521,16 +7523,20 @@ class TSN_flow_info (object):
 		
 		numcount = 0
 		for i in self.tslot:
-			packed += struct.pack("!H", i)
+			if (int(i) > MAX_TSLOT_NUM):
+				raise Exception("timeslot sequence bigger than max")
+			packed += struct.pack("!H", int(i))
 			numcount += 1
 		
+		#assert numcount <= MAX_TSLOT_NUM,"the tslot num is more than MAX_TSLOT_NUM"
 		if (numcount > MAX_TSLOT_NUM):
-			print ("the len is more than", MAX_TSLOT_NUM)
-			assert 0;
+			raise Exception("the tslot num is more than MAX_TSLOT_NUM")
 		
+
 		return packed
 
 	def __len__ (self):
+		# attention:"2" is byte length of tslot  
 		return self._MIN_LENGTH + 2 * len(self.tslot)
 
 
@@ -7553,9 +7559,9 @@ class TSN_config_info (object):
 		for i in self.flow_info:
 			packed += i.pack()
 			numcount += 1
+		#assert numcount <= MAX_FLOW_NUM,"the len is more than MAX_FLOW_NUM"
 		if (numcount > MAX_FLOW_NUM):
-			print ("the len is more than", MAX_FLOW_NUM)
-			assert 0;
+			raise Exception("the len is more than MAX_FLOW_NUM")
 		
 		return packed
 
@@ -7566,8 +7572,8 @@ class TSN_config_info (object):
 		
 		return self._MIN_LENGTH + length
 
-TSN_CONFIG = 0
 CLASSFIER_TABLE = 1
+TSN_CONFIG = 2
 @openflow_sc_message("OFPT_EXPER", 4)       
 class ofp_experimenter (ofp_header):
 	_MIN_LENGTH = 9
@@ -7575,7 +7581,7 @@ class ofp_experimenter (ofp_header):
 		ofp_header.__init__(self)
 		self.type  = 0
 		self.tsn_cfg = TSN_config_info()
-		#self.ctab = sync_classfier_table()
+		self.ctab = sync_classfier_table()
 		initHelper(self, kw)
 	def pack (self):
 		packed = b""
@@ -7584,19 +7590,24 @@ class ofp_experimenter (ofp_header):
 		
 		if (TSN_CONFIG == self.type):
 			packed += self.tsn_cfg.pack()
-			print ("pack the time slot config info!\n")
+			print ("pack the tsn config info!\n")
 		
+		elif (CLASSFIER_TABLE == self.type):
+			packed += self.ctab.pack()
+
 		return packed
 
 	def __len__ (self):
 		if (TSN_CONFIG == self.type):
 			print ("calculate the length of exp_msg:",\
 				 self._MIN_LENGTH + self.tsn_cfg.pack_len())
-		
 			return self._MIN_LENGTH + self.tsn_cfg.pack_len()
+		
+		elif (CLASSFIER_TABLE == self.type):
+			return self._MIN_LENGTH + self.ctab.pack_len()
 		else :
-			print ("we do not support this type now!\n")
-			assert 0;
+			raise Exception("we do not support this type now!\n")
+			
 ###############################################################
 #   end:add for TSN test by jiazy 18.07.25
 ##############################################################

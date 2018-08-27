@@ -3,7 +3,7 @@
 import re
 import socket
 import struct
-import global_env_caozw as g
+import global_env as g
 
 
 #@param

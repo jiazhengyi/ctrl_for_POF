@@ -1,13 +1,18 @@
 #######################################
-#comments must add at beginning
-#there must be no null line
-#the TSN config file format need to be:
-#deviceID
-#StreamID PortID TimeSlot Queue
-#p.s. multi timeslot use '|' split
+# comments must add at beginning
+# there must be no null line
+# the TSN config file format need to be:
+# deviceID
+# StreamID PortID TimeSlot Queue
+# p.s. multi timeslot use '|' split
+# Do not have space line at the tail
 #######################################
 2
 0x000000000001 3 10|12|13 5
 0x000000000002 4 1|2|3 7
 0x000000000003 4 11 8
 0x000000000004 4 15 9
+0x23457823c363 5 16 2
+0x43457823c3f3 6 33 12
+0x43457823cdf3 7 14 33
+0xffffffffffff 0 8 1

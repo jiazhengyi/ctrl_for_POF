@@ -12,7 +12,7 @@ from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpidToStr
 from time import sleep
-import global_env_caozw as g
+import global_env as g
 import read_rules as r
 
 # match field format:{ field_id:[offset, length, mask]}
@@ -102,6 +102,28 @@ def ins_mov_pkt_offset(args):# [dir, valuetype, [value]]
 
 	return tempins
 
+def ins_to_cp(args): # [reasontype,app_act_flag,endflag,max_len,meta_pos,meta_len,reasonvalue/field_name] 
+	tempins = of.ofp_instruction_to_CP()
+	tempins.reasonType = args[0]    #0: immediate value; 1: from field
+	tempins.apply_action_flag = args[1]
+	tempins.end_flag = args[2]
+	tempins.max_len = args[3]
+	tempins.meta_pos = args[4]
+	tempins.meta_len = args[5]
+	if (0 == temins.reasonType):
+		tempins.reasonValue = args[6] 
+	else : 
+		field = g.field_config[args[6]]
+		ofmatch20 = of.ofp_match20()
+		ofmatch20.fieldId = field[0]
+		ofmatch20.offset = field[1]
+		ofmatch20.length = field[2]
+		tempins.reason_field = ofmatch20
+
+	print ("add the instruction to_CP \n")
+	return tempins
+
+
 
 def ins_app_action(args): # [act1, act2, act3,..] ps: act = [act name, act args]
 	tempins = of.ofp_instruction_applyaction()
@@ -178,6 +200,7 @@ insmap = {
 		'setoffset': ins_set_pkt_offset,
 		'movoffset': ins_mov_pkt_offset,
 		'applyaction': ins_app_action,
+		'tocp':ins_to_cp,
 		'addfield': act_add_field,
 		'delfield': act_del_field,
 		'modfield': act_modify_field,
@@ -239,7 +262,6 @@ def add_matchx_value_mask(field_name, value, mask):
 
 
 def gen_add_entry_from_config (tname,index):
-
 	msg = of.ofp_flow_mod()
 	msg.cookie = 0
 	msg.cookieMask = 0
@@ -306,6 +328,23 @@ def add_one_flow_entry (tname, index, pri, value, mask, inss, arg_map, arg_value
 		tempins = insmap[i](args)
 		msg.instruction.append(tempins)
 		
+	return msg
+
+def add_classfier_table (tname): 
+	msg = of.ofp_experimenter()
+	msg.type = of.CLASSFIER_TABLE
+	msg.ctab.type = of.SYNC_TABLE
+	msg.ctab.table = gen_add_table_msg(tname)
+	
+	return msg
+
+
+def add_classfier_entry (tname, index):
+	msg = of.ofp_experimenter()
+	msg.type = of.CLASSFIER_TABLE
+	msg.ctab.type = of.SYNC_ENTRY
+   	msg.ctab.entry = gen_add_entry_from_config(tname,index)
+	
 	return msg
 
 

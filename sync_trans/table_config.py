@@ -25,6 +25,13 @@ import global_env as g
 # entry format:{(tname, index):[priority, counter_id, [matchx_id]}
 #entry = {('first table', 0):[0, 0, [46]]}
 
+def act_pkt_in(args):# [reason]
+	action=of.ofp_action_packetin()
+	action.reason = args[0]  
+	print ("add the action 'packetin' \n")
+
+	return action
+
 
 def act_drop(args):# [reason]
 	action=of.ofp_action_drop()
@@ -98,6 +105,21 @@ def ins_mov_pkt_offset(args):# [dir, valuetype, [value]]
 		print ("the value type is 1\n")
 
 	print ("add the instruction move pkt offset\n")
+
+	return tempins
+
+def ins_tocp(args):# [dir, valuetype, [value]]
+	tempins=of.ofp_instruction_to_CP()
+	tempins.direction = args[0]
+  	tempins.valueType = args[1]
+	value = args[2]
+	
+	if 0 == args[1]:
+	  	tempins.move_value = value[0]
+	else :
+		print ("the value type is 1\n")
+
+	print ("add the instruction toCP\n")
 
 	return tempins
 
@@ -177,6 +199,7 @@ insmap = {
 		'setoffset': ins_set_pkt_offset,
 		'movoffset': ins_mov_pkt_offset,
 		'applyaction': ins_app_action,
+		'tocp':ins_tocp,
 		'addfield': act_add_field,
 		'delfield': act_del_field,
 		'modfield': act_modify_field,
@@ -327,7 +350,7 @@ def add_classfier_entry (tname, index):
 	
 	for i in instruct:
 		print i[0]
-		tempins = tab_cfg.insmap[i[0]](i[1])
+		tempins = insmap[i[0]](i[1])
 		entry.instruction.append(tempins)
 		
    	msg.ctab.entry = entry

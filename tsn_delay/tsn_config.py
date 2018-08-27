@@ -75,15 +75,16 @@ def add_TSN_config (config) :# config can get by devID
 	msg = of.ofp_experimenter()
 	msg.type = of.TSN_CONFIG
 	msg.tsn_cfg.cmd = 0 
+	#print config
 	# todo: try to use 列表解析法
 	for i in range(flow_num):
 		flow_info = of.TSN_flow_info()
-		flow_info.flowID = config[i][0]
-		flow_info.port = config[i][1]
+		flow_info.flowID = long(config[i][0],16)
+		flow_info.port = int(config[i][1])
 		flow_info.tslot = get_timeslot_list(config[i][2])
-		flow_info.queue = config[i][3]
+		flow_info.queue = int(config[i][3])
 		msg.tsn_cfg.flow_info.append(flow_info)
-
+		
 	msg.tsn_cfg.flow_num = flow_num
 	
 	return msg

@@ -62,10 +62,6 @@ field_config = {'not_used' : null, # for file field map
 }
 
 
-##########  add  table  #######################
-# table format:{'tname':[tid, type, tsize, [match_field]]
-table = {'L3table': [ 0, of.OF_MM_TABLE, 128, ['dip_no_vlan'] ],
-}
 
 ########################################################
 #通过文件来添加表项，主要包括文件路径，分离规则
@@ -113,10 +109,19 @@ files = {file1: [rule1, field_map1, ins_set1, ins_args1],
 #############################################################
 #  通过自己手动配置流表
 #############################################################
-# matchx format: { ('tname', index, field_name):[value, mask]}
+###########  add  table  #######################
+
+# table format:{'tname':[tid, type, tsize, [match_field]]
+table = {'L3table': [ 0, of.OF_MM_TABLE, 128, ['dip_no_vlan'] ],
+	'classifier': [ 0xfd, of.OF_MM_TABLE, 128, ['input_port'] ],
+}
+
+#matchx format: { (field_name):[value, mask]}
 matchx1 = { 'dip_no_vlan' : [ '0800', mask_4byte ],
 }
 
+matchx2 = { 'input_port' : [ '0000', mask_4byte ],
+}
 
 # insrtuction
 '''
@@ -125,6 +130,7 @@ instruction format = {
 		'gototable':  [next_table_id]
 		'setoffset': [offsettype, [value]] ps: [0, [value]] or [1, [field_name]]
 		'movoffset': [dir, valuetype, [value]] ps:[0,[value]] or [1, [field_name]]
+		'tocp':[reasontype,app_act_flag,endflag,max_len,meta_pos,meta_len,reasonvalue/field_name] 
 		'applyaction': [act1, act2, act3,..] ps: act = [act name, act args]
 		'addfield': [field_name] 
 		'delfield':  [offset, length]
@@ -137,11 +143,14 @@ instruction format = {
 }
 '''
 # instruction format{(ins1:[args]}
-ins_set1 = {'gototable': [1],
-		}
+ins_setx1 = {'gototable': [1],
+}
 	
-# entry format:{(tname, index):[priority, [matchx_field], [ins_sets]}
-entry = {('L3table', 0): [ 10, matchx1, ins_set1 ],
+ins_setx2 = {'tocp': [0,0,1,0xffff,0,8,8],
 }
 
+# entry format:{(tname, index):[priority, [matchx_field], [ins_sets]}
+entry = {('L3table', 0): [ 10, matchx1, ins_setx1 ],
+	('classifier', 0): [ 0, matchx2, ins_setx2 ],
+}
 
