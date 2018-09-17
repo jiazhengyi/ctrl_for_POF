@@ -110,7 +110,7 @@ def ins_to_cp(args): # [reasontype,app_act_flag,endflag,max_len,meta_pos,meta_le
 	tempins.max_len = args[3]
 	tempins.meta_pos = args[4]
 	tempins.meta_len = args[5]
-	if (0 == temins.reasonType):
+	if (0 == tempins.reasonType):
 		tempins.reasonValue = args[6] 
 	else : 
 		field = g.field_config[args[6]]
@@ -229,8 +229,8 @@ def add_match_field (tname):
 	return match_field, key_len
 
 
-def gen_add_table_msg (tname): 
-	#global field_config
+def gen_add_table_msg (tname):
+	# global field_config
 
 	msg = of.ofp_table_mod()
 	
@@ -330,23 +330,62 @@ def add_one_flow_entry (tname, index, pri, value, mask, inss, arg_map, arg_value
 		
 	return msg
 
-def add_classfier_table (tname): 
+
+def add_classfier_table(tname):
 	msg = of.ofp_experimenter()
 	msg.type = of.CLASSFIER_TABLE
 	msg.ctab.type = of.SYNC_TABLE
-	msg.ctab.table = gen_add_table_msg(tname)
-	
+
+	table = of.sync_flow_table()
+	t = g.table[tname]
+	table.command = 0    #OFPTC_ADD
+	table.tableName = tname
+	table.tableId = t[0]
+	table.tableType = t[1]
+	table.tableSize = t[2]
+	table.matchFieldNum = len(t[3])
+	field_info = add_match_field(tname)
+	table.matchFieldList = field_info[0]
+	table.keyLength = field_info[1]
+
+	msg.ctab.table = table
+
 	return msg
 
 
-def add_classfier_entry (tname, index):
+def add_classfier_entry(tname, index):
 	msg = of.ofp_experimenter()
 	msg.type = of.CLASSFIER_TABLE
 	msg.ctab.type = of.SYNC_ENTRY
-   	msg.ctab.entry = gen_add_entry_from_config(tname,index)
-	
-	return msg
 
+	entry = of.sync_flow_entry()
+	e = g.entry[tname, index]
+	entry.cookie = 0
+	entry.cookieMask = 0
+
+	entry.index = index
+	entry.priority = e[0]
+	g.counter_id += 1
+	entry.counterId = g.counter_id
+	entry.tableId = g.table[tname][0]
+	entry.tableType = g.table[tname][1]
+
+	matchx  = e[1]
+	for i in matchx.keys():
+		value = matchx[i][0]
+		mask = matchx[i][1]
+		tempmatchx = add_matchx_value_mask(i, value, mask)
+		entry.matchx.append(tempmatchx)
+
+	ins_sets = e[2]
+	for i in ins_sets.keys():
+		args = ins_sets[i]
+		tempins = insmap[i](args)
+		entry.instruction.append(tempins)
+	
+	msg.ctab.entry = entry
+
+	return msg
 
 
 def print_entry (e):

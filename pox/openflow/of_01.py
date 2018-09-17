@@ -32,6 +32,7 @@ import pox.openflow.debug
 from pox.openflow.util import make_type_to_unpacker_table
 from pox.openflow import *
 import pox.openflow.bypassmanager as bpm    # cc
+import tsn_delay.tsn_handler as tsn #jizy
 
 log = core.getLogger()
 
@@ -153,7 +154,7 @@ def handle_RESOURCE_REPORT(con,msg):
     pass
     
 def handle_FEATURES_REPLY (con, msg):
-	print " handle feature reply by jiazy!!!!!"
+	print " handle feature reply !"
 	connecting = con.connect_time == None
 	#con.features = msg
 	#con.original_ports._ports = set(msg.ports)
@@ -248,7 +249,7 @@ def handle_STATS_REPLY (con, msg):
   con._incoming_stats_reply(msg)
 
 def handle_PORT_STATUS (con, msg): #A
-  print "handle port stat!!!!!!!!!"
+  print "handle port stat!!!!!"
   if msg.reason == of.OFPPR_DELETE:
     con.ports._forget(msg.desc)
   else:
@@ -405,8 +406,8 @@ handlerMap = {
   of.OFPT_HELLO : handle_HELLO,
   of.OFPT_ECHO_REQUEST : handle_ECHO_REQUEST,
   of.OFPT_ECHO_REPLY : handle_ECHO_REPLY,
-  of.OFPT_PACKET_IN : bpm.handle_PACKET_IN,      #cc
-  of.OFPT_FEATURES_REPLY : bpm.handle_FEATURES_REPLY,  #jiazy
+  of.OFPT_PACKET_IN : tsn.handle_PACKET_IN,      #jiazy
+  of.OFPT_FEATURES_REPLY : bpm.handle_FEATURES_REPLY,
   of.OFPT_PORT_STATUS : bpm.handle_PORT_STATUS,  #cc
   of.OFPT_ERROR : bpm.handle_ERROR_MSG,          #cc
   of.OFPT_BARRIER_REPLY : handle_BARRIER,
@@ -794,7 +795,7 @@ class Connection (EventMixin):
     # be in topology.switch
     self.dpid = None
     self.config = None  #add by Tan
-    self.features = None   
+    self.features = None
     self.disconnected = False
     self.connect_time = None
     self.idle_time = time.time()
@@ -925,7 +926,7 @@ class Connection (EventMixin):
 
       if buf_len - offset < msg_length: break
 
-      new_offset,msg = unpackers[ofp_type](self.buf, offset)
+      new_offset,msg = unpackers[ofp_type](self.buf, offset)# call class.unpack_new()
       assert new_offset - offset == msg_length
       offset = new_offset
 

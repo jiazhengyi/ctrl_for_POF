@@ -65,7 +65,7 @@ def send_port_mod(connection):
 
 
 def handle_FEATURES_REPLY (con, msg):    #type:6
-    print "jiazy: receive Features_Reply message\n"
+    print "receive Features_Reply message\n"
     connecting = con.connect_time == None       #connect_time = None as default, so connecting = ture
     #print ("con.connect_time:",con.connect_time)
     con.features = msg
@@ -136,7 +136,7 @@ def handle_FEATURES_REPLY (con, msg):    #type:6
     con.send(getGonfigReq)
 
 def handle_PORT_STATUS (con, msg):    # type:12
-    print "jiazy: receive PORT_STATUS message\n"
+    print "receive PORT_STATUS message\n"
     if msg.reason == of.OFPPR_DELETE:
         con.ports._forget(msg.desc)
     else:
@@ -159,7 +159,7 @@ def handle_PORT_STATUS (con, msg):    # type:12
         f = con.ofnexus.raiseEventNoErrors(ConnectionUp, con, msg)    # add by lsr
         if f is None or f.halt != True:
             con.raiseEventNoErrors(ConnectionUp, con, msg)
-        
+
 def send_echo_request(con):
     def send():
         con.send(ofp_echo_request())
@@ -171,19 +171,22 @@ def send_echo_request(con):
     t.start()
     
 def handle_RESOURCE_REPORT (con, msg):      # type:13
-    print "jiazy: receive RESOURCE_REPORT message\n"
+    print " receive RESOURCE_REPORT message\n"
     send_echo_request(con)
     e = con.ofnexus.raiseEventNoErrors(ResourceReport, con, msg)
     if e is None or e.halt != True:
         con.raiseEventNoErrors(ResourceReport, con, msg)
     pass
 
+
 def handle_PACKET_IN (con, msg):   # type: 10
     print "CC: receive PACKET_IN message\n", msg
+    
     e = con.ofnexus.raiseEventNoErrors(PacketIn, con, msg)
     if e is None or e.halt != True:
         con.raiseEventNoErrors(PacketIn, con, msg)
-        
+
+
 def handle_ERROR_MSG (con, msg):   # type: 1
     print "CC: receive RESOURCE_REPORT message\n",msg
     err = ErrorIn(con, msg)

@@ -885,7 +885,8 @@ class ofp_header (ofp_base):
       pass
     outstr += prefix + 'xid:     ' + str(self.xid) + '\n'
     return outstr
-  
+
+
   def __str__ (self):
     return self.__class__.__name__ + "\n  " + self.show('  ').strip()
 
@@ -1645,7 +1646,7 @@ class ofp_match20 (ofp_base):    #add by milktank
 
   def unpack(self,raw,offset=0):
     _offset = offset
-    offset,self.fieldId = _unpack('!h', raw, offset)
+    offset,self.fieldId = _unpack('!H', raw, offset)
     offset,self.offset = _unpack('!H', raw, offset)
     offset,self.length = _unpack('!H', raw, offset)
     offset =_skip(raw, offset, 2)
@@ -1657,7 +1658,7 @@ class ofp_match20 (ofp_base):    #add by milktank
   def pack(self):
     assert self._assert()
     packed=b""
-    packed += struct.pack("!h" ,self.fieldId)
+    packed += struct.pack("!H" ,self.fieldId)
     packed += struct.pack("!H" ,self.offset)
     packed += struct.pack("!H" ,self.length)
     packed += _PAD2
@@ -1666,7 +1667,6 @@ class ofp_match20 (ofp_base):    #add by milktank
 init_match20 = ofp_match20()
 
 
-    
 ##2.7 ofp_flow_table by #milktank
 class ofp_flow_table (ofp_base):  #add by milktank
   """
@@ -1771,7 +1771,7 @@ class ofp_flow_table (ofp_base):  #add by milktank
     packed += struct.pack("!L" ,self.tableSize)
     #print (packed.encode('hex'))
     packed += struct.pack("!H" ,self.keyLength)
-    #print (packed.encode('hex'))
+    print (packed.encode('hex'))
     packed += _PAD6
     #print (packed.encode('hex'))
     packed += struct.pack("!64s" ,self.tableName)
@@ -1782,8 +1782,8 @@ class ofp_flow_table (ofp_base):  #add by milktank
         numcount = numcount + 1
     if numcount < OFP_MAX_MATCH_FIELD_NUM:
         packed += _PAD*((OFP_MAX_MATCH_FIELD_NUM - numcount )*(ofp_match20._MIN_LENGTH))
-    
-    #print (packed.encode('hex'))    
+
+    #print (packed.encode('hex'))
     return packed
 
 
@@ -4387,7 +4387,7 @@ class ofp_action_tp_port (ofp_action_base):
   @classmethod
   def set_dst (cls, tp_port = None):
     return cls(OFPAT_SET_TP_DST, tp_port)
-  @classmethod
+  @ classmethod
   def set_src (cls, tp_port = None):
     return cls(OFPAT_SET_TP_SRC, tp_port)
 
@@ -6248,7 +6248,129 @@ class ofp_generic_stats_body (ofp_stats_body_base):
     outstr += prefix + 'data len: ' + str(len(self.data)) + '\n'
     return outstr
 
+# modify by jiazy
+@openflow_c_message("OFPT_PACKET_OUT", 14)
+class ofp_packet_out (ofp_header): #change to avoid collision by milktank
+  _MIN_LENGTH = 16
+  def __init__ (self, **kw):
+    ofp_header.__init__(self)
+    self._buffer_id = NO_BUFFER
+    self.in_port = OFPP_NONE
+    self.actions = []
+    self._data = b''
 
+    # ofp_flow_mod & ofp_packet_out do some special handling of 'actions'
+
+    # Allow "action" as a synonym for "actions"
+    if 'action' in kw and 'actions' not in kw:
+      kw['actions'] = kw['action']
+      del kw['action']
+    initHelper(self, kw)
+
+    # Allow use of actions=<a single action> for kw args.
+    if not hasattr(self.actions, '__getitem__'):
+      self.actions = [self.actions]
+
+  @property
+  def buffer_id (self):
+    if self._buffer_id == NO_BUFFER: return None
+    return self._buffer_id
+  @buffer_id.setter
+  def buffer_id (self, val):
+    if val is None: val = NO_BUFFER
+    self._buffer_id = val
+
+  @property
+  def data (self):
+    return self._data
+  @data.setter
+  def data (self, data):
+    if data is None:
+      self._data = b''
+    elif isinstance(data, packet_base):
+      self._data = data.pack()
+    elif isinstance(data, ofp_packet_in):
+      # Enable you to easily resend a packet
+      self._data = b''
+      self.buffer_id = data.buffer_id
+      if self.buffer_id is None:
+        #TODO: It'd be nice to log and then ignore if data is incomplete
+        #      Unfortunately, we currently have no logging in here, so we
+        #      assert instead which is a either too drastic or too quiet.
+        assert data.is_complete
+        self._data = data._data
+      self.in_port = data.in_port
+    elif isinstance(data, bytes):
+      self._data = data
+    assert assert_type("data", self._data, (bytes,))
+
+  def _validate (self):
+    if self.buffer_id is not None and self.data != b'':
+      return "can not have both buffer_id and data set"
+    return None
+
+  def pack (self):
+    assert self._assert()
+
+    actions = b''.join((i.pack() for i in self.actions))
+    if self._data is not None:
+      data = b''
+      data = b''.join((ofp_header.pack(self),
+        struct.pack("!LLB", self._buffer_id, self.in_port, len(self.actions)),_PAD3,
+        struct.pack("!L",len(self._data)),self._data, actions))
+      #print (map(ord,data))
+      return data
+    else:
+      return b''.join((ofp_header.pack(self),
+      struct.pack("!LLB", self._buffer_id, self.in_port, len(self.actions)),_PAD3,
+      struct.pack("!L",len(self._data)),actions))
+
+  def unpack (self, raw, offset=0):
+    _offset = offset
+    offset,length = self._unpack_header(raw, offset)
+    offset,(self._buffer_id, self.in_port, actions_num) = \
+        _unpack("!LLB", raw, offset)
+    offset += _PAD3
+    offset,self.actions = _unpack_actions(raw, actions_num, offset)
+
+    remaining = length - (offset - _offset)
+    if remaining <= 0:
+      self.data = None
+    else:
+      offset,self.data = _read(raw, offset, remaining)
+
+    assert length == len(self)
+    return offset,length
+
+  def __len__ (self):
+    return 8+16 + reduce(operator.add, (len(a) for a in self.actions),
+        0) + (len(self.data) if self.data else 0)
+
+  def __eq__ (self, other):
+    if type(self) != type(other): return False
+    if not ofp_header.__eq__(self, other): return False
+    if self.buffer_id != other.buffer_id: return False
+    if self.in_port != other.in_port: return False
+    if self.actions != other.actions: return False
+    return True
+
+  def show (self, prefix=''):
+    outstr = ''
+    outstr += prefix + 'header: \n'
+    outstr += ofp_header.show(self, prefix + '  ')
+    outstr += prefix + 'buffer_id: ' + str(self.buffer_id) + '\n'
+    outstr += prefix + 'in_port: ' + str(self.in_port) + '\n'
+    outstr += prefix + 'actions_n: ' + str(len(self.actions)) + '\n'
+    outstr += prefix + 'actions: \n'
+    for obj in self.actions:
+      if obj is None:
+        raise RuntimeError("An element of self.actions was None! "
+                           + "Bad formatting...")
+      outstr += obj.show(prefix + '  ')
+    return outstr
+
+
+'''
 @openflow_c_message("OFPT_PACKET_OUT", 14)
 class ofp_packet_out (ofp_header): #change to avoid collision by milktank
   _MIN_LENGTH = 16
@@ -6316,15 +6438,15 @@ class ofp_packet_out (ofp_header): #change to avoid collision by milktank
     actions = b''.join((i.pack() for i in self.actions))
     actions_len = len(actions)
     packed=b""
-    
+
     packed += ofp_header.pack(self)
     packed += struct.pack("!L" ,self._buffer_id)
     packed += struct.pack("!L" ,self.inPort)
     packed += struct.pack("!B" ,len(self.actions))
     packed += _PAD*3
     packed += struct.pack("!L" ,len(self.data))
-    #print ("\n")
-    #print (packed.encode("hex"))
+    print ("\n")
+    print (packed.encode("hex"))
     
     if len(self.actions)==0:
         packed += _PAD * OFP_MAX_ACTION_NUMBER_PER_INSTRUCTION * ofp_action._MAX_LENGTH
@@ -6335,21 +6457,21 @@ class ofp_packet_out (ofp_header): #change to avoid collision by milktank
             if len(i)< ofp_action._MAX_LENGTH:
                 packed += _PAD * (ofp_action._MAX_LENGTH-len(i))
             numcount+=1
-        #print (packed.encode("hex"))
+        print (packed.encode("hex"))
         if numcount < OFP_MAX_ACTION_NUMBER_PER_INSTRUCTION:
             packed +=_PAD * (OFP_MAX_ACTION_NUMBER_PER_INSTRUCTION - numcount) *ofp_action._MAX_LENGTH
-        #print (packed.encode("hex"))
+        print (packed.encode("hex"))
         if (self.data !=b""):
             if (len(self.data) < OFP_PACKET_IN_MAX_LENGTH):
-                #datapacked =b""+ struct.pack("!10s" ,self.data)
-                #print ("datapacked:",datapacked.encode("hex"))      
+                datapacked =b""+ struct.pack("!10s" ,self.data)
+                print ("datapacked:",datapacked.encode("hex"))      
                 packed += self.data
-                #print ("data:",self.data.encode("hex"))
-                #print (len(self.data))
-        #print ("Blank:",(_PAD*(OFP_PACKET_IN_MAX_LENGTH - len(self.data))).encode("hex"))
-        #print ("Blank:",(_PAD*1600).encode("hex"))
+                print ("data:",self.data.encode("hex"))
+                print (len(self.data))
+        print ("Blank:",(_PAD*(OFP_PACKET_IN_MAX_LENGTH - len(self.data))).encode("hex"))
+        print ("Blank:",(_PAD*1600).encode("hex"))
         blank=OFP_PACKET_IN_MAX_LENGTH - len(self.data)
-        #print ("before memset blank:\n",packed.encode("hex"))
+        print ("before memset blank:\n",packed.encode("hex"))
         if blank > 1024:            
             packed += _PAD*(1024)
             packed += _PAD*(blank-1024)
@@ -6357,8 +6479,8 @@ class ofp_packet_out (ofp_header): #change to avoid collision by milktank
             #print ("Blank2:\n",( _PAD*(blank-1024)).encode("hex"))
         else:
             packed += _PAD*blank
-        #print ("after memset blank:\n",packed.encode("hex"))    
-        #print ("after memset blank length:\n",len(packed))            
+        print ("after memset blank:\n",packed.encode("hex"))
+        print ("after memset blank length:\n",len(packed))
     return packed
     """
     if self.data is not None:
@@ -6415,7 +6537,7 @@ class ofp_packet_out (ofp_header): #change to avoid collision by milktank
                            + "Bad formatting...")
       outstr += obj.show(prefix + '  ')
     return outstr
-
+'''
 """
 #backup for the orginal packet_out
 @openflow_c_message("OFPT_PACKET_OUT", 14)
@@ -6732,7 +6854,6 @@ class ofp_packet_in (ofp_header):
     self.slotID = 0
     self.port_id= 0
     self.packetData = b''
-    
 
 
   def pack (self):
@@ -6751,7 +6872,7 @@ class ofp_packet_in (ofp_header):
     offset,length = self._unpack_header(raw, offset)
     offset,(self.bufferId, self.totalLength,self.reason, self.tableId, \
              self.cookie, self.deviceId, self.slotID,self.port_id) = _unpack("!LHBBQLHH", raw, offset)
-    offset,self.packetData = _read(raw, offset, self.totalLength)        
+    offset,self.packetData = _read(raw, offset, self.totalLength)
     assert length == len(self)
     return offset,length
 

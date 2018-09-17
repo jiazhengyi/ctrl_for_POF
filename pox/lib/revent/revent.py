@@ -228,7 +228,7 @@ class EventMixin (object):
     If exceptions are caught, the global handleEventExceptions() is called.
     Also see raiseEvent()
     """
-    #TODO: this should really keep subsequent events executing and print
+    # TODO: this should really keep subsequent events executing and print
     #      the specific handler that failed...
     try:
       return self.raiseEvent(event, *args, **kw)
