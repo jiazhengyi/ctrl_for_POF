@@ -1,0 +1,20 @@
+#######################################
+# comments must add at beginning
+# there must be no null line
+# the TSN config file format need to be:
+#
+# deviceID
+# flowID srcMAC TimeSlot PortID Queue
+#
+# p.s. multi timeslot use '|' split
+# special queue is 0,1, so do not use queue 0,1
+# Do not have space line at the tail
+#######################################
+2
+0 0 1 0 1
+0xffffffffffaa 0xabababababab 2 0x2 2
+0xffffffffffbb 0xabababababab 3 0xffe6 3
+4
+0 0 1 0 1
+0xffffffffffaa 0xabababababab 2 0x2 2
+0xffffffffffbb 0xabababababab 3 0xffe6 3

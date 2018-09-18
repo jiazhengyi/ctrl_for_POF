@@ -146,7 +146,7 @@ def send_tsnd_pkt (event) :#  pkt can get by devID
     for i in range(pkt_num):
         pkt_info = Tsnd_Packet()
         pkt_info.flowID = long(pkts[i][0],16)
-        if (pkt_info.flowID == TSND_REQ_FLOWID):
+        if (pkt_info.flowID != TSND_REPLY_FLOWID):
             pkt_info.srcMAC = long(pkts[i][1],16)
             pkt_info.send_tslot = int(pkts[i][2])
             pkt_info.send_port = int(pkts[i][3],16)
