@@ -1,7 +1,7 @@
 # coding:utf-8
 
 import sys
-sys.path.append('/home/naner/jiazy/ctrl_for_POF/')
+sys.path.append('/home/jiazy/ctrl_for_POF/')
 
 import pox.openflow.libopenflow_01 as of
 from pox.core import core
@@ -34,8 +34,8 @@ def add_tsn_switch(event):
 
 
 def _handle_ConnectionUp(event):
-        add_tsn_config(event)
         add_tsn_switch(event)
+        add_tsn_config(event)
         hlr.send_tsnd_pkt(event)
 
 def _handle_PacketIn(event):

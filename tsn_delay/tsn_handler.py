@@ -7,7 +7,7 @@ Created on Aug,29,2018
 tsn_handler Module
 '''
 import sys
-sys.path.append('/home/naner/jiazy/ctrl_for_POF/')
+sys.path.append('/home/jiazy/ctrl_for_POF/')
 
 import time
 import struct
@@ -137,25 +137,31 @@ def encap_packet_out_msg(pkt):
 TSND_REQ_FLOWID = 0xffffffffffaa
 tsnd_pkts = {}
 # pkt format:['FlowID','srcMAC','ethType','vlanID','send_timeslot']
-def send_tsnd_pkt (event) :#  pkt can get by devID
-    print ("call the function send_TSND_pkt()\n")
-    pkts = tsnd_pkts[event.dpid]
-    #pkts = tsnd_pkts[event]
+def get_tsnd_pkt (dpid) :#  pkt can get by devID
+    print ("call the function get_TSND_pkt()\n")
+    pkts = tsnd_pkts[dpid]
+    pkts_tem = []
     pkt_num = len(pkts)
-    # todo: try to use 列表解析法
     for i in range(pkt_num):
-        pkt_info = Tsnd_Packet()
-        pkt_info.flowID = long(pkts[i][0],16)
-        if (pkt_info.flowID != TSND_REPLY_FLOWID):
-            pkt_info.srcMAC = long(pkts[i][1],16)
-            pkt_info.send_tslot = int(pkts[i][2])
-            pkt_info.send_port = int(pkts[i][3],16)
-            pkt_info.send_dev = event.dpid
-            msg = encap_packet_out_msg(pkt_info.pack())
+        pkt = Tsnd_Packet()
+        pkt.flowID = long(pkts[i][0],16)
+        if (pkt.flowID <= TSND_REQ_FLOWID):
+            pkt.srcMAC = long(pkts[i][1],16)
+            pkt.send_tslot = int(pkts[i][2])
+            pkt.send_port = int(pkts[i][3],16)
+            pkt.send_dev = dpid
+            pkts_tem.append(pkt)
+
+    return pkts_tem
+
+
+def send_tsnd_pkt(event): 
+    pkts = get_tsnd_pkt(event.dpid)
+    for i in pkts:          
+            msg = encap_packet_out_msg(i.pack())
             #print map(ord,msg.pack())
             event.connection.send(msg)
 
-    return
 
 def handle_tsnd_measure(e):
         print ("handle tsnd measure by jiazy!")
@@ -172,4 +178,4 @@ def handle_tsnd_measure(e):
 if __name__ == '__main__':
     print("tsnd_handler module test!")
     tsnd_pkts = c.read_tsn_config('tsn_conf_file1')
-    send_tsnd_pkt(2)
+    print len(get_tsnd_pkt(2))
