@@ -84,19 +84,20 @@ class Tsnd_Packet ():
         self.rcvtime = 0
         self.flowID = 0
         self.srcMAC = 0
-        self.ethtype = 0x8100
-        self.vlan = 0xd000
+        self.ethtype = 0xffff
+        #self.vlan = 0xd000
         self.send_dev = 0
         self.send_port = 0
         self.send_tslot = 0
+        self.var = 0
 
     def pack(self):
         flowID = struct.pack('!Q',self.flowID)[2:]
         srcMAC = struct.pack('!Q',self.srcMAC)[2:]
         #print map(ord,flowID),map(ord, srcMAC)
         seq = [flowID, srcMAC,
-        struct.pack("!HHHLH",
-          self.ethtype, self.vlan, self.send_dev,self.send_port,self.send_tslot)]
+        struct.pack("!HHLH",
+          self.ethtype,self.send_dev,self.send_port,self.send_tslot)]
 
         data = b''
         data = b''.join(seq)
@@ -107,8 +108,8 @@ class Tsnd_Packet ():
 
     def unpack (self, raw, offset = 0):
         offset,(self.rcvtime,) = _unpack("!H", raw, offset)
-        offset = _skip (raw, offset, 16)
-        offset,(self.send_dev,self.send_port,self.send_tslot) = _unpack("!HLH",raw, offset)
+        offset = _skip (raw, offset, 14)
+        offset,(self.send_dev,self.send_port,self.send_tslot,self.var) = _unpack("!HLHH",raw, offset)
         return
 
     def show(self):
@@ -135,6 +136,7 @@ def encap_packet_out_msg(pkt):
 
 
 TSND_REQ_FLOWID = 0xffffffffffaa
+TSND_REPLY_FLOWID = 0xffffffffffbb
 tsnd_pkts = {}
 # pkt format:['FlowID','srcMAC','ethType','vlanID','send_timeslot']
 def get_tsnd_pkt (dpid) :#  pkt can get by devID
@@ -146,6 +148,7 @@ def get_tsnd_pkt (dpid) :#  pkt can get by devID
         pkt = Tsnd_Packet()
         pkt.flowID = long(pkts[i][0],16)
         if (pkt.flowID <= TSND_REQ_FLOWID):
+        #if (pkt.flowID == TSND_REPLY_FLOWID):
             pkt.srcMAC = long(pkts[i][1],16)
             pkt.send_tslot = int(pkts[i][2])
             pkt.send_port = int(pkts[i][3],16)
@@ -157,25 +160,17 @@ def get_tsnd_pkt (dpid) :#  pkt can get by devID
 
 def send_tsnd_pkt(event): 
     pkts = get_tsnd_pkt(event.dpid)
-    for i in pkts:          
+    for i in pkts:
             msg = encap_packet_out_msg(i.pack())
             #print map(ord,msg.pack())
             event.connection.send(msg)
 
 
-def handle_tsnd_measure(e):
-        print ("handle tsnd measure by jiazy!")
-        tsnd = Tsnd_Packet()
-        tsnd.inport = e.ofp.port_id
-        tsnd.recv_dev = e.dpid
-        #print map(ord, e.ofp.packetData)
-        tsnd.unpack(e.ofp.packetData)
-        c.write_TD_MIB(tsnd)
-        #print (tsnd.show())
-        print (c.TD_MIB)
-
 
 if __name__ == '__main__':
     print("tsnd_handler module test!")
     tsnd_pkts = c.read_tsn_config('tsn_conf_file1')
+    for i in range(10):
+        print i
+        time.sleep(5)
     print len(get_tsnd_pkt(2))

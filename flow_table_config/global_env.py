@@ -48,7 +48,7 @@ OFPP_MAX          = 0xff00
 OFPP_PTP          = 0xffe0
 OFPP_ST_EDGE_IN   = 0xffe1
 OFPP_ST_EDGE_OUT  = 0xffe2
-OFPP_ST_CORE      = 0xffe3
+OFPP_STAT      = 0xffe3
 OFPP_PIPELINE     = 0xffe4
 OFPP_TSN          = 0xffe5
 OFPP_TSND_REPLY   = 0xffe6
@@ -161,7 +161,7 @@ matchx3 =[ {'dst_mac':['ffffffffffaa',mask_6byte]},#tsnd_req_flow
 
 
 matchx4 = [{ 'eth_type' : [ '88f7', mask_2byte ]},
-	{'eth_type' : [ '8100', mask_2byte ]},
+	{'eth_type' : [ 'ffff', mask_2byte ]},
 ]
 
 
@@ -198,6 +198,7 @@ ins_setx3 =[ {'applyaction': [['output',[OFPP_TSND_REPLY]], ]},
 
 ins_setx4 =[ {'applyaction': [['output',[OFPP_PTP]], ]},
 	{'applyaction': [['output',[OFPP_TSN]], ]},
+	{'applyaction': [['output',[OFPP_STAT]], ]},
 ]
 
 
@@ -208,4 +209,5 @@ entry = {('L3table', 0): [10, matchx1, ins_setx1[0]],
 	('classifier1', 1): [0, matchx3[1], ins_setx3[0]],
 	('classifier2', 0): [0, matchx4[0], ins_setx4[0]],
 	('classifier2', 1): [0, matchx4[1], ins_setx4[1]],
+	('classifier2', 2): [0, matchx4[1], ins_setx4[2]],
 }

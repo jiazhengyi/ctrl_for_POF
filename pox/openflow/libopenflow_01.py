@@ -7661,7 +7661,7 @@ class TSN_flow_info (object):
 		return self._MIN_LENGTH + 2 * len(self.tslot)
 
 
-MAX_FLOW_NUM = 10
+MAX_FLOW_NUM = 100
 class TSN_config_info (object):
 	_MIN_LENGTH = 3
 	
