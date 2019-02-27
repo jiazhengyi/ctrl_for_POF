@@ -3,11 +3,13 @@
 此文件主要用来配置流表
 """
 import sys
-sys.path.append('../../')
+sys.path.append('/home/jiazy/ctrl_for_POF/')
+
 
 from pox.openflow.libopenflow_01 import ofp_packet_out, ofp_action_output
 import struct
 
+from collections import OrderedDict
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpidToStr
@@ -124,6 +126,17 @@ def ins_to_cp(args): # [reasontype,app_act_flag,endflag,max_len,meta_pos,meta_le
 	return tempins
 
 
+def ins_timer(args): # [type, tid, eid]
+    tempins=of.ofp_instruction_timer()
+    tempins.type = args[0]
+    tempins.tid = args[1]
+    tempins.eid = args[2]
+    print ("add the instruction timer\n")
+
+    return tempins
+
+
+
 
 def ins_app_action(args): # [act1, act2, act3,..] ps: act = [act name, act args]
 	tempins = of.ofp_instruction_applyaction()
@@ -201,6 +214,7 @@ insmap = {
 		'movoffset': ins_mov_pkt_offset,
 		'applyaction': ins_app_action,
 		'tocp':ins_to_cp,
+        'timer':ins_timer,
 		'addfield': act_add_field,
 		'delfield': act_del_field,
 		'modfield': act_modify_field,

@@ -3969,6 +3969,35 @@ class ofp_instruction_to_CP (ofp_instruction):  #add by jiazy
 
 
 #To avoid collision by Tan
+
+
+## add by jiazy
+## TIMER instruction
+@openflow_instruction("timer", 66)
+class ofp_instruction_timer (ofp_instruction):  #add by jiazy
+  _MIN_LENGTH = ofp_instruction._MIN_LENGTH + 7
+  def __init__(self,**kw):
+    ofp_instruction.__init__(self)
+    self.type = 0    # table type
+    self.tid = 0
+    self.eid = 0
+
+    initHelper(self, kw)
+  def __len__(self):
+    return ofp_instruction_timer._MIN_LENGTH     ##Need to change to the correct length of the packet 
+
+  
+  def pack(self):
+    packed=b""
+    packed += ofp_instruction.pack(self)
+    packed += struct.pack("!B", self.type)
+    packed += struct.pack("!L", self.tid) 
+    packed += struct.pack("!H", self.eid)
+
+    return packed
+
+
+
 '''
 class ofp_action_generic (ofp_action_base):
   _MIN_LENGTH = 8
@@ -7732,6 +7761,116 @@ class ofp_experimenter (ofp_header):
 ###############################################################
 #   end:add for TSN test by jiazy 18.07.25
 ##############################################################
+
+
+'''
+################################################
+#  start: add ofp_time_mod message
+################################################
+
+## table type list ##
+Ingress_policy = 0
+TAS = 1
+
+
+class time_table_config (object):
+	_MIN_LENGTH =  0
+	
+	def __init__(self):
+		self.type = 0
+
+	def pack (self):
+		packed = b""
+        #TODO: add time table args according to table type
+		return packed
+
+	def pack_len (self):
+		return self._MIN_LENGTH
+
+class time_entry_config (object):
+	_MIN_LENGTH = 2 
+    MAX_LENGTH = ofp_header._MIN_LENGTH + 40 + ofp_matchx._MIN_LENGTH * OFP_MAX_MATCH_FIELD_NUM + \
+    ofp_instruction._MAX_LENGTH * OFP_MAX_INSTRUCTION_NUM
+
+  def __init__ (self, **kw):
+    self.type = 0
+    self.ins_num = 0
+    self.index = 0
+    self.ins = []
+    self.matchArgs = []
+
+  def pack (self):
+    packed = b""
+    packed += struct.pack ( "!B" ,self.index)
+    packed += struct.pack ( "!B" ,len(self.matchArgs))
+    packed += struct.pack ( "!B" ,len(self.ins))
+    
+    if Ingress_policy == self.type:  
+        if len(self.matchArgs) > 2:
+			raise Exception("Ingress_policy table match args  more than 2!\n")
+        for i in self.matchArgs:
+            packed += struct.pack ( "!H" ,i)
+    elif TAS == self.type:
+         if len(self.matchArgs) != 1:
+			raise Exception("TAS table match args num not 1!\n")
+         for i in self.matchArgs:
+            packed += struct.pack ( "!H" ,i)
+      
+    
+    numcount = 0
+    for i in self.ins:
+        packed += i.pack()
+        if (len(i)<ofp_instruction._MAX_LENGTH):
+            packed += _PAD*(ofp_instruction._MAX_LENGTH - len(i) )
+        numcount += 1
+    if (numcount < OFP_MAX_INSTRUCTION_NUM):
+        packed += _PAD * ((OFP_MAX_INSTRUCTION_NUM - numcount) * ofp_instruction._MAX_LENGTH)
+    return packed
+ 
+
+
+TABLE = 0
+ENTRY = 1
+@openflow_sc_message("OFPT_TIME_MOD", 66)       
+class ofp_time_mod (ofp_header):
+	_MIN_LENGTH = 9
+	def __init__ (self, **kw):
+		ofp_header.__init__(self)
+		self.cmd  = 0
+        self.tab_type = Ingress_policy
+        self.tab_index = 0
+		self.table = time_table_config()
+		self.entry = time_entry_config()
+		initHelper(self, kw)
+
+	def pack (self):
+		packed = b""
+		packed += ofp_header.pack(self)
+		packed += struct.pack("!B", self.cmd)
+		packed += struct.pack("!B", self.tab_type)
+		packed += struct.pack("!L", self.tab_index)
+		
+		if (TABLE == self.data_type):
+			packed += self.time_table_config.pack()
+			print ("pack the time_table_config!\n")
+		
+		elif (ENTRY == self.data_type):
+			packed += self.time_entry_config.pack()
+
+		return packed
+
+	def __len__ (self):
+		if (TABLE == self.data_type):
+			print ("calculate the length of ofp_time_mod:",\
+				 self._MIN_LENGTH + self.time_table_config.pack_len())
+			return self._MIN_LENGTH + self.time_table_config.pack_len()
+		
+		elif (ENTRY == self.data_type):
+			return self._MIN_LENGTH + self.time_entry_config.pack_len()
+		else :
+			raise Exception("we do not support this type now!\n")
+			
+'''
 
 """
 #########################

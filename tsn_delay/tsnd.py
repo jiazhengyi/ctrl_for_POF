@@ -65,28 +65,27 @@ def add_tsn_switch(event):
 def _handle_ConnectionUp(event):
         add_tsn_switch(event)
         # add PTP config
-        msg = conf.add_TSN_config_multi_auto1(1,'0x0',0,'1',1)
+        msg = conf.add_TSN_config_multi_all_add_1(1,'0x0',0,'1',1)
         event.connection.send(msg)
 
         if (event.dpid == 2):
-            msg = conf.add_TSN_config_multi_auto2(90,'0xffffffffff00',0x2,'3',3)
+            msg = conf.add_TSN_config_multi_all_add_1(1,'0xffffffffff00',0x2,'23',23)
             event.connection.send(msg)
 
         else :
-            msg = conf.add_TSN_config_multi_auto1(90,'0xffffffffff00',0x6,'3',3)
+            msg = conf.add_TSN_config_multi_all_add_1(90,'0xffffffffff00',0x6,'3',3)
             event.connection.send(msg)
         '''
         # add tsnd reply config
-        msg = conf.add_TSN_config_multi_auto(1,'0xffffffffffbb',0x6,'2',2)
+        msg = conf.add_TSN_config_multi_all_add_1(1,'0xffffffffffbb',0x6,'9',9)
         event.connection.send(msg)
         # add tsnd request config
-        msg = conf.add_TSN_config_multi_auto(1,'0xffffffffff00',0x2,'3',3)
+        msg = conf.add_TSN_config_multi_all_add_1(1,'0xffffffffff00',0x2,'3',3)
         event.connection.send(msg)
-        '''
 
         #msg = conf.add_TSN_config_by_file(event.dpid,'tsn_conf_file1')
         #event.connection.send(msg)
-        '''
+        
         msg = conf.add_TSN_config_by_file(event.dpid,conf.conf_file3)
         event.connection.send(msg)
         '''

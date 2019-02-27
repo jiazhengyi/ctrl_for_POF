@@ -94,7 +94,7 @@ def add_TSN_config_by_file(dev_id,file):
 # config format:['FlowID','PortID','TimeSlot','Queue']
 # dmac format:string "0xfffffffxx"
 # tslot format: string "2"
-def add_TSN_config_multi_auto1(flow_num, dmac, port, tslot, queue):
+def add_TSN_config_multi_all_add_1(flow_num, dmac, port, tslot, queue):
     print ("add tsn config auto()\n")
     msg = of.ofp_experimenter()
     msg.type = of.TSN_CONFIG
@@ -122,7 +122,7 @@ def add_TSN_config_multi_auto1(flow_num, dmac, port, tslot, queue):
 # config format:['FlowID','PortID','TimeSlot','Queue']
 # dmac format:string "0xfffffffxx"
 # tslot format: string "2"
-def add_TSN_config_multi_auto2(flow_num, dmac, port, tslot, queue):
+def add_TSN_config_multi_dmac_add_1(flow_num, dmac, port, tslot, queue):
     print ("add tsn config auto()\n")
     msg = of.ofp_experimenter()
     msg.type = of.TSN_CONFIG
@@ -145,6 +145,35 @@ def add_TSN_config_multi_auto2(flow_num, dmac, port, tslot, queue):
     msg.tsn_cfg.flow_num = flow_num 
 
     return msg
+
+# dmac and tslot and queue add by x step
+# config format:['FlowID','PortID','TimeSlot','Queue']
+# dmac format:string "0xfffffffxx"
+# tslot format: string "2"
+def add_TSN_config_multi_all_add_x(x, flow_num, dmac, port, tslot, queue):
+    print ("add tsn config auto()\n")
+    msg = of.ofp_experimenter()
+    msg.type = of.TSN_CONFIG
+    msg.tsn_cfg.cmd = 0
+    dmac_n = long(dmac, 16)
+    tslot_n = int(tslot)
+    # todo: try to use 列表解析法
+    for i in range(flow_num):
+        flow_info = of.TSN_flow_info()
+        flow_info.flowID = dmac_n
+        flow_info.port = port
+        flow_info.tslot = get_timeslot_list(str(tslot_n))
+        flow_info.queue = queue
+        msg.tsn_cfg.flow_info.append(flow_info)
+        
+        dmac_n = dmac_n + x
+        tslot_n = tslot_n + x
+        queue = queue + x
+
+    msg.tsn_cfg.flow_num = flow_num 
+
+    return msg
+
 
 
 def add_TSN_config_ptp():
