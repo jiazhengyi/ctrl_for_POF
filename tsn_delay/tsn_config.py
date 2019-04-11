@@ -192,6 +192,30 @@ def add_TSN_config_ptp():
 
     return msg
 
+# multi-tslot
+# config format:['FlowID','PortID','TimeSlot','Queue']
+# dmac format:string "0xfffffffxx"
+# tslot format: string "2|3|4"
+def add_TSN_config_multi_slot(flow_num, dmac, port, tslot, queue):
+    print ("add tsn multi-slot config auto()\n")
+    msg = of.ofp_experimenter()
+    msg.type = of.TSN_CONFIG
+    msg.tsn_cfg.cmd = 0
+    dmac_n = long(dmac, 16)
+    # todo: try to use 列表解析法
+    for i in range(flow_num):
+        flow_info = of.TSN_flow_info()
+        flow_info.flowID = dmac_n
+        flow_info.port = port
+        flow_info.tslot = get_timeslot_list(tslot)
+        flow_info.queue = queue
+        msg.tsn_cfg.flow_info.append(flow_info)
+        
+
+    msg.tsn_cfg.flow_num = flow_num 
+
+    return msg
+
 
    
 if __name__ == '__main__':

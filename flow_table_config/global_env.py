@@ -12,6 +12,8 @@ import read_rules as r
 ##############################################
 mask_2byte = "ffff"
 mask_4byte = "ffffffff"
+no_mask_4byte = "00000000"
+
 mask_6byte = "ffffffffffff"
 
 ethsrc = 6*8
@@ -147,6 +149,7 @@ table = {'L3table':[0, of.OF_MM_TABLE, 128, ['dip_no_vlan']],
 	'classifier1':[0xfd, of.OF_MM_TABLE, 128, ['dst_mac']],
 	'classifier2':[0xfd, of.OF_MM_TABLE, 128, ['eth_type']],
 	'classifier3':[0xfd, of.OF_MM_TABLE, 128, ['eth_type']],
+	'classifier4':[0xfd, of.OF_MM_TABLE, 128, ['input_port']],
 }
 
 # matchx format: { (field_name):[value, mask]}
@@ -154,7 +157,8 @@ table = {'L3table':[0, of.OF_MM_TABLE, 128, ['dip_no_vlan']],
 matchx1 = { 'dip_no_vlan' : [ '0800', mask_4byte ],
 }
 
-matchx2 = [{'input_port' : [ '0000', mask_4byte]},
+matchx2 = [{'input_port' : [ '00000006', mask_4byte]},
+        {'input_port' : [ '00000002', mask_4byte]},
 ]
 
 matchx3 =[ {'dst_mac':['ffffffffffaa',mask_6byte]},#tsnd_req_flow
@@ -201,6 +205,8 @@ ins_setx3 =[ {'applyaction': [['output',[OFPP_TSND_REPLY]], ]},
 ins_setx4 =[ {'applyaction': [['output',[OFPP_PTP]], ]},
 	{'applyaction': [['output',[OFPP_TSN]], ]},
 	{'applyaction': [['output',[OFPP_STAT]], ]},
+	{'applyaction': [['output',[6]], ]},
+	{'applyaction': [['output',[2]], ]},
 ]
 
 ins_setx5 = [OrderedDict([('timer',[0,0,1]),('applyaction',[['output',[4]],])]),
@@ -212,11 +218,13 @@ entry = {('L3table', 0): [10, matchx1, ins_setx1[0]],
 	('classifier1', 0): [0, matchx3[0], ins_setx3[1]],
 	('classifier1', 1): [0, matchx3[1], ins_setx3[0]],
 	('classifier2', 0): [0, matchx4[0], ins_setx4[0]],
-	('classifier2', 1): [0, matchx4[1], ins_setx4[1]],
+	('classifier2', 1): [0, matchx4[1], ins_setx4[1]],#
 	('classifier2', 2): [0, matchx4[1], ins_setx4[2]],
 	('classifier3', 0): [0, matchx4[0], ins_setx4[0]],
 	('classifier3', 1): [0, matchx4[1], ins_setx5[0]],
-	('classifier3', 2): [0, matchx4[1], ins_setx4[2]],
+	('classifier4', 0): [0, matchx2[0], ins_setx4[4]],#6jin,2chu
+	('classifier4', 1): [0, matchx2[1], ins_setx4[3]],#2 jin, 6chu
+	('classifier4', 2): [0, matchx2[1], ins_setx4[3]],#2 jin, 6chu
 }
 
 if __name__ == '__main__':
